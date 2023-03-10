@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+    <title>Piano Lumen</title>
+    
+    <link rel="stylesheet" href="index.css"/>
+
+    <script src="components/Strip.js"></script>
+    <script src="components/RemoteStrip.js"></script>
+    <script src="components/MidiAccess.js"></script>
+    <script src="components/MidiNoteTools.js"></script>
+
+    <script src="components/stripRenderers/SimpleStripRenderer.js"></script>
+    <script src="components/stripRenderers/HistoryStripRenderer.js"></script>
+
+    <script src="components/stripBehaviours/SimpleStripBehaviour.js"></script>
+    <script src="components/stripBehaviours/RipplesStripBehaviour.js"></script>
+    <script src="components/stripBehaviours/AssistantStripBehaviour.js"></script>
+
+    <link rel="stylesheet" href="components/PianoKeyboard/PianoKeyboard.css">
+    <script src="components/PianoKeyboard/PianoKeyboard.js"></script>
+
+    <script defer src="index.js"></script>
+  </head>
+  <body>
+    <div id="strip" class="viewport"></div>
+    <div id="piano-keyboard" class="piano-keyboard"></div>
+  </body>
+</html>
