@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/piano-lumen-browser.iml" filepath="$PROJECT_DIR$/.idea/piano-lumen-browser.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../twitch-piano/.idea/piano-trainer.iml" filepath="$PROJECT_DIR$/../twitch-piano/.idea/piano-trainer.iml" />
     </modules>
   </component>
 </project>

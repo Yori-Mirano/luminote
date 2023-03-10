@@ -23,21 +23,34 @@ class PianoKeyboard {
     return !PianoKeyboard.isBlackKey(midiNote);
   }
 
+  element;
+  noteStart;
+  noteEnd;
+  pedalThreshold = 43;
+  pedalLevel = 0;
+  keys = {};
+
 
   /**
    *
-   * @param element {HTMLElement}
-   * @param pedalThreshold
-   * @param noteNameStart
-   * @param noteNameEnd
+   * @param element   {HTMLElement}
+   * @param noteStart {number|string}
+   * @param noteEnd   {number|string}
    */
-  constructor(element, pedalThreshold = 43, noteNameStart = 'A1', noteNameEnd= 'C9') {
+  constructor(element, noteStart = 'A1', noteEnd= 'C9') {
     this.element        = element;
-    this.noteStart      = MidiNoteTools.getMidiNote(noteNameStart);
-    this.noteEnd        = MidiNoteTools.getMidiNote(noteNameEnd);
-    this.pedalThreshold = pedalThreshold;
-    this.pedalLevel     = 0
-    this.keys           = {};
+
+    if (typeof noteStart === 'string') {
+      this.noteStart      = MidiNoteTools.getMidiNote(noteStart);
+    } else {
+      this.noteStart      = noteStart;
+    }
+
+    if (typeof noteStart === 'string') {
+      this.noteEnd        = MidiNoteTools.getMidiNote(noteEnd);
+    } else {
+      this.noteEnd        = noteEnd;
+    }
 
     this.init();
   }
@@ -59,7 +72,7 @@ class PianoKeyboard {
 
     for (let midiNote = this.noteStart; midiNote <= this.noteEnd; midiNote++) {
       this.element.style.setProperty('--key-count', this.keyCount);
-      this.element.style.setProperty('--white-keys-count', this.whiteKeyCount);
+      this.element.style.setProperty('--white-key-count', this.whiteKeyCount);
       const whiteKeyWidth = 100 / this.whiteKeyCount;
       const blackKeyWidth = (100 - 1.25) / this.keyCount; // FIXME: position de la première note noire à gauche et de la dernière à droite
 
@@ -90,10 +103,12 @@ class PianoKeyboard {
    * @param midiNote {number}
    */
   pressKey(midiNote) {
-    this.keys[midiNote].classList.add('piano-keyboard__key--on');
+    if (this.keys[midiNote]) {
+      this.keys[midiNote].classList.add('piano-keyboard__key--on');
 
-    if (this.isPedalDown()) {
-      this.keys[midiNote].classList.add('piano-keyboard__key--pedal');
+      if (this.isPedalDown()) {
+        this.keys[midiNote].classList.add('piano-keyboard__key--pedal');
+      }
     }
   }
 
@@ -102,7 +117,9 @@ class PianoKeyboard {
    * @param midiNote {number}
    */
   releaseKey(midiNote) {
-    this.keys[midiNote].classList.remove('piano-keyboard__key--on');
+    if (this.keys[midiNote]) {
+      this.keys[midiNote].classList.remove('piano-keyboard__key--on');
+    }
   }
 
   /**

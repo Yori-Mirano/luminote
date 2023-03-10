@@ -33,7 +33,6 @@ class RemoteStrip {
     
       try {
         const jsonData = JSON.parse(event.data);
-        console.log(event.data);
         
         if (jsonData.stripLength && jsonData.colorPerPixel && jsonData.fpsMax) {
           this.fpsMax = jsonData.fpsMax;

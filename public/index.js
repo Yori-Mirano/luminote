@@ -1,23 +1,39 @@
 /*
+ * Config
+ */
+console.log('[ Config ]');
+const config = {
+  remoteStripHostname : prompt('host ip', localStorage.remoteStripHostname || '192.168.xx.xx'),
+
+  pianoKeyboardNoteRange: {
+    start:  MidiNoteTools.getMidiNote('A1'),
+    end:    MidiNoteTools.getMidiNote('C9')
+  }
+}
+
+localStorage.remoteStripHostname = config.remoteStripHostname;
+
+
+/*
  * Piano Keyboard
  */
 console.log('[ Piano Keyboard ]');
-const pianoKeyboard = new PianoKeyboard(document.getElementById('piano-keyboard'));
+const pianoKeyboard = new PianoKeyboard(
+  document.getElementById('piano-keyboard'),
+  config.pianoKeyboardNoteRange.start,
+  config.pianoKeyboardNoteRange.end
+);
 
 
 /*
  * Remote strip
  */
 console.log('[ Remote strip ]');
-
-const hostname  = prompt('host ip', localStorage.hostname || '192.168.xx.xx');
-localStorage.hostname = hostname;
-
-const remoteStrip = new RemoteStrip(hostname, (strip, syncRemoteStrip) => {
+const remoteStrip = new RemoteStrip(config.remoteStripHostname, (strip, syncRemoteStrip) => {
   /*
    * StripRenderer
    */
-  console.log('[ StripRenderer ]');
+  console.log('[ Strip Renderer ]');
   const simpleStripRenderer = new SimpleStripRenderer(document.getElementById('strip'), strip, 8);
   const historyStripRenderer = new HistoryStripRenderer(document.getElementById('strip'), strip, 8);
 
@@ -42,35 +58,37 @@ const remoteStrip = new RemoteStrip(hostname, (strip, syncRemoteStrip) => {
   console.log('[ Midi Access ]');
   const midiAccess = new MidiAccess();
 
-  midiAccess.onInputConnect = () => {
+  midiAccess.addEventListener('input_connected', () => {
     pianoKeyboard.element.classList.add('piano-keyboard--connected');
-  };
+  });
 
-  midiAccess.onInputDisonnect = () => {
+  midiAccess.addEventListener('input_disconnected', () => {
     pianoKeyboard.element.classList.remove('piano-keyboard--connected');
-  };
+  });
 
-  midiAccess.onKeyDown = (note, velocity) => {
-    pianoKeyboard.pressKey(note);
-    notes[note -21].pressed   = true;
-    notes[note -21].pedal     = pianoKeyboard.isPedalDown();
-    notes[note -21].velocity  = velocity / 128;
-  };
+  midiAccess.addEventListener('note_on', event => {
+    pianoKeyboard.pressKey(event.detail.note);
+    notes[event.detail.note - config.pianoKeyboardNoteRange.start].pressed   = true;
+    notes[event.detail.note - config.pianoKeyboardNoteRange.start].pedal     = pianoKeyboard.isPedalDown();
+    notes[event.detail.note - config.pianoKeyboardNoteRange.start].velocity  = event.detail.velocity / 128;
+  })
 
-  midiAccess.onKeyUp = note => {
-    pianoKeyboard.releaseKey(note);
-    notes[note -21].pressed = false;
-  };
+  midiAccess.addEventListener('note_off', event => {
+    pianoKeyboard.releaseKey(event.detail.note);
+    notes[event.detail.note - config.pianoKeyboardNoteRange.start].pressed = false;
+  });
 
-  midiAccess.onPedal = (level) => {
-    pianoKeyboard.setPedal(level);
+  midiAccess.addEventListener('sustain', event => {
+    pianoKeyboard.setPedal(event.detail.level);
 
     if (pianoKeyboard.isPedalDown()) {
       notes.forEach(note => note.pedal = !!(note.pressed || note.pedal));
     } else {
       notes.forEach(note => note.pedal = false);
     }
-  };
+  });
+
+  midiAccess.requestMidiAccess();
 
 
   /*
