@@ -1,5 +1,5 @@
 /**
- * Requiert MidiNoteTools.js
+ * @external MidiNoteTools
  */
 class PianoKeyboard {
   /**
@@ -67,34 +67,56 @@ class PianoKeyboard {
    *
    */
   init() {
-    let whiteKeyPosition = 0;
-    let blackKeyPosition = 0;
+    const keyboardBlackKeyContainer = document.createElement('div');
+    keyboardBlackKeyContainer.classList.add('pianoKeyboard_blackKeys');
+    keyboardBlackKeyContainer.style.left = this.leftMargin + '%';
+    keyboardBlackKeyContainer.style.right = this.rightMargin + '%';
+    this.element.appendChild(keyboardBlackKeyContainer);
 
     for (let midiNote = this.noteStart; midiNote <= this.noteEnd; midiNote++) {
-      this.element.style.setProperty('--key-count', this.keyCount);
-      this.element.style.setProperty('--white-key-count', this.whiteKeyCount);
-      const whiteKeyWidth = 100 / this.whiteKeyCount;
-      const blackKeyWidth = (100 - 1.25) / this.keyCount; // FIXME: position de la première note noire à gauche et de la dernière à droite
-
       const keyboardKey = document.createElement('div');
+      keyboardKey.classList.add('pianoKeyboard_key');
+      this.keys[midiNote] = keyboardKey;
 
       if (PianoKeyboard.isWhiteKey(midiNote)) {
-        const keyElementPosition  = whiteKeyPosition * whiteKeyWidth;
-        keyboardKey.style.left  = keyElementPosition + '%';
-        keyboardKey.classList.add('piano-keyboard__white-key');
-        whiteKeyPosition++;
-        blackKeyPosition++;
+        keyboardKey.classList.add('-white');
+        this.element.appendChild(keyboardKey);
+        keyboardBlackKeyContainer.appendChild(document.createElement('div'));
 
       } else {
-        const keyElementPosition  = blackKeyPosition * blackKeyWidth;
-        keyboardKey.style.left  = `calc(.55% + ${keyElementPosition}%)`; // FIXME: position de la première note noire à gauche et de la dernière à droite
-        keyboardKey.classList.add('piano-keyboard__black-key');
-        blackKeyPosition++;
+        keyboardKey.classList.add('-black');
+        keyboardBlackKeyContainer.appendChild(keyboardKey);
       }
-
-      this.keys[midiNote] = keyboardKey;
-      this.element.appendChild(keyboardKey);
     }
+  }
+
+
+  disable() {
+    this.element.classList.add('-disabled');
+  }
+
+  enable() {
+    this.element.classList.remove('-disabled');
+  }
+
+  get leftMargin () {
+    const previousCNote = MidiNoteTools.getPreviousMidiNoteByName('C', this.noteStart);
+    return (this.noteStart - previousCNote) * this.blackKeyWidthPercent
+           - this.getWhiteKeyCount(previousCNote, this.noteStart -1) * this.whiteKeyWidthPercent;
+  }
+
+  get rightMargin () {
+    const nextCNote = MidiNoteTools.getNextMidiNoteByName('B', this.noteEnd);
+    return (nextCNote - this.noteEnd) * this.blackKeyWidthPercent
+           - this.getWhiteKeyCount(this.noteEnd +1 , nextCNote) * this.whiteKeyWidthPercent;
+  }
+
+  get whiteKeyWidthPercent () {
+    return 100 / this.getWhiteKeyCount();
+  }
+
+  get blackKeyWidthPercent () {
+    return this.whiteKeyWidthPercent * 7/12
   }
 
 
@@ -104,10 +126,10 @@ class PianoKeyboard {
    */
   pressKey(midiNote) {
     if (this.keys[midiNote]) {
-      this.keys[midiNote].classList.add('piano-keyboard__key--on');
+      this.keys[midiNote].classList.add('-on');
 
       if (this.isPedalDown()) {
-        this.keys[midiNote].classList.add('piano-keyboard__key--pedal');
+        this.keys[midiNote].classList.add('-pedal');
       }
     }
   }
@@ -118,7 +140,7 @@ class PianoKeyboard {
    */
   releaseKey(midiNote) {
     if (this.keys[midiNote]) {
-      this.keys[midiNote].classList.remove('piano-keyboard__key--on');
+      this.keys[midiNote].classList.remove('-on');
     }
   }
 
@@ -130,12 +152,12 @@ class PianoKeyboard {
     this.pedalLevel = level;
 
     if (this.isPedalDown()) {
-      this.element.querySelectorAll('.piano-keyboard__key--on').forEach(noteElement => {
-        noteElement.classList.add('piano-keyboard__key--pedal');
+      this.element.querySelectorAll('.-on').forEach(noteElement => {
+        noteElement.classList.add('-pedal');
       })
     } else {
-      this.element.querySelectorAll('.piano-keyboard__key--pedal').forEach(noteElement => {
-        noteElement.classList.remove('piano-keyboard__key--pedal');
+      this.element.querySelectorAll('.-pedal').forEach(noteElement => {
+        noteElement.classList.remove('-pedal');
       })
     }
   }
@@ -149,10 +171,10 @@ class PianoKeyboard {
    *
    * @returns {number}
    */
-  get whiteKeyCount() {
+  getWhiteKeyCount(from = this.noteStart, to = this.noteEnd) {
     let whiteKeyCount = 0;
 
-    for (let midiNote = this.noteStart; midiNote <= this.noteEnd; midiNote++) {
+    for (let midiNote = from; midiNote <= to; midiNote++) {
       if (PianoKeyboard.isWhiteKey(midiNote)) {
         whiteKeyCount++;
       }
@@ -166,10 +188,10 @@ class PianoKeyboard {
    *
    * @returns {number}
    */
-  get blackKeyCount() {
+  getBlackKeyCount(from = this.noteStart, to = this.noteEnd) {
     let blackKeyCount = 0;
 
-    for (let midiNote = this.noteStart; midiNote <= this.noteEnd; midiNote++) {
+    for (let midiNote = from; midiNote <= to; midiNote++) {
       if (PianoKeyboard.isBlackKey(midiNote)) {
         blackKeyCount++;
       }
@@ -183,7 +205,7 @@ class PianoKeyboard {
    *
    * @returns {number}
    */
-  get keyCount() {
-    return this.whiteKeyCount + this.blackKeyCount;
+  getKeyCount() {
+    return this.noteEnd - this.noteStart + 1;
   }
 }

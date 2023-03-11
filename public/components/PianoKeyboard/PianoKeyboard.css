@@ -1,68 +1,48 @@
-.piano-keyboard {
-  --key-count: 88;
-  --white-key-count: 52;
-
+.pianoKeyboard {
   position:   relative;
-  bottom:     0;
-  width:      100%;
-  height:     100%;
-  background: #888;
-  overflow:   hidden;
-
+  display:    flex;
   transition: filter 1s;
 }
 
-.piano-keyboard:not(.piano-keyboard--connected) {
+.pianoKeyboard.-disabled {
   filter: brightness(0.5);
 }
 
-.piano-keyboard__white-key,
-.piano-keyboard__black-key {
+.pianoKeyboard_blackKeys {
+  position: absolute;
+  top:      0;
+  left:     0;
+  right:    0;
+  height:   66%;
+  display:  flex;
+}
+
+.pianoKeyboard_blackKeys > * {
+  flex-grow:  1;
+}
+
+.pianoKeyboard_key {
+  flex-grow:  1;
   transition: background-color 150ms;
 }
 
 /* White keys */
-.piano-keyboard__white-key {
-  position:     absolute;
-  width:        calc((100% / var(--white-key-count)) + 1px);
-  height:       100%;
-  background:   #eee;
-  box-sizing:   border-box;
-  z-index:      1;
+.pianoKeyboard_key.-white {
+  background: #fff;
+  aspect-ratio: 1/6;
 }
 
-.piano-keyboard__white-key:first-child {
-  border: none;
-}
-
-.piano-keyboard__white-key.piano-keyboard__key--pedal {
-  background: rgb(164, 211, 238);
-}
-
-.piano-keyboard__white-key.piano-keyboard__key--on {
-  background: rgb(231 185 102);
-}
+.pianoKeyboard_key.-white.-pedal { background: rgb(164, 211, 238); }
+.pianoKeyboard_key.-white.-on    { background: rgb(231 185 102); }
 
 
 /* Black keys */
-.piano-keyboard__black-key {
-  position:     absolute;
-  width:        calc((100% - 1.25%) / var(--key-count)); /* FIXME: position de la première note noire à gauche et de la dernière à droite */
-  height:       66%;
-  background:   #2b2b2b;
-  border-radius: 0 0 .2vw .2vw;
-  box-sizing:   border-box;
-  z-index:      2;
+.pianoKeyboard_key.-black {
+  /*position:      absolute;*/
+  /*width:         calc((100% / var(--white-key-count)) * 7 / 12);*/
+  background:    #2b2b2b;
+  border-radius: 0 0 .3vw .3vw;
 }
 
-.piano-keyboard__black-key:first-child {
-  border: none;
-}
-
-.piano-keyboard__black-key.piano-keyboard__key--pedal {
-  background: rgb(62, 137, 187);
-}
-
-.piano-keyboard__black-key.piano-keyboard__key--on {
-  background: rgb(187 137 62);
-}
+.pianoKeyboard_key.-black.-pedal { background: rgb(62, 137, 187); }
+.pianoKeyboard_key.-black.-on    { background: rgb(187 137 62); }

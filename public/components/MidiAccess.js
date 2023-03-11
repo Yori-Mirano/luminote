@@ -1,3 +1,13 @@
+/**
+ * @external MIDIAccess
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/MIDIAccess
+ */
+
+/**
+ * @external MIDIMessageEvent
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/MIDIMessageEvent
+ */
+
 class MidiAccess extends EventTarget {
   requestMidiAccess() {
     if (navigator.requestMIDIAccess) {

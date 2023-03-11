@@ -1,33 +1,30 @@
 @import url('https://fonts.googleapis.com/css?family=Lato:wght@900&display=swap');
 
 body {
-  font-family:  'Lato', sans-serif;
-  font-size:    1vw;
-  background-color: #000000;
-  color: #fff;
+  font-family: 'Lato', sans-serif;
+  font-size:   1vw;
+  background:  #000;
+  color:       #fff;
 }
 
 
 /*
  * LAYOUT
  */
- body {
-  position:     relative;
-  margin:       0;
-  height:       100vh;
-  overflow:     hidden;
-  display:      grid;
-  grid-template:
-    "viewport"
-    "piano-keyboard" 10vw;
+body {
+  position:       relative;
+  margin:         0;
+  height:         100vh;
+  overflow:       hidden;
+  display:        flex;
+  flex-direction: column;
 }
 
 
 #viewport {
-  grid-area: viewport;
+  flex-grow: 1;
 }
 
-#piano-keyboard {
-  grid-area: piano-keyboard;
-
+#pianoKeyboard {
+  flex-shrink: 0;
 }

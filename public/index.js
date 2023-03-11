@@ -1,9 +1,9 @@
 /*
  * Config
  */
-console.log('[ Config ]');
 const config = {
-  remoteStripHostname : prompt('host ip', localStorage.remoteStripHostname || '192.168.xx.xx'),
+  //remoteStripHostname : localStorage.remoteStripHostname = prompt('host ip', localStorage.remoteStripHostname || '192.168.xx.xx'), // TODO: create a user friendly interface
+  remoteStripHostname : '192.168.1.43', // TODO: remove this dev shortcut
 
   pianoKeyboardNoteRange: {
     start:  MidiNoteTools.getMidiNote('A1'),
@@ -11,15 +11,12 @@ const config = {
   }
 }
 
-localStorage.remoteStripHostname = config.remoteStripHostname;
-
 
 /*
  * Piano Keyboard
  */
-console.log('[ Piano Keyboard ]');
 const pianoKeyboard = new PianoKeyboard(
-  document.getElementById('piano-keyboard'),
+  document.getElementById('pianoKeyboard'),
   config.pianoKeyboardNoteRange.start,
   config.pianoKeyboardNoteRange.end
 );
@@ -28,20 +25,17 @@ const pianoKeyboard = new PianoKeyboard(
 /*
  * Remote strip
  */
-console.log('[ Remote strip ]');
 const remoteStrip = new RemoteStrip(config.remoteStripHostname, (strip, syncRemoteStrip) => {
   /*
    * StripRenderer
    */
-  console.log('[ Strip Renderer ]');
-  const simpleStripRenderer = new SimpleStripRenderer(document.getElementById('strip'), strip, 8);
-  const historyStripRenderer = new HistoryStripRenderer(document.getElementById('strip'), strip, 8);
+  const simpleStripRenderer = new SimpleStripRenderer(document.getElementById('viewport'), strip, 8);
+  const historyStripRenderer = new HistoryStripRenderer(document.getElementById('viewport'), strip, 8);
 
   
   /*
    * Notes
    */
-  console.log('[ Notes ]');
   const notes = [];
   strip.forEach(i => {
     notes[i] = {
@@ -55,15 +49,14 @@ const remoteStrip = new RemoteStrip(config.remoteStripHostname, (strip, syncRemo
   /*
    * Midi Access
    */
-  console.log('[ Midi Access ]');
   const midiAccess = new MidiAccess();
 
   midiAccess.addEventListener('input_connected', () => {
-    pianoKeyboard.element.classList.add('piano-keyboard--connected');
+    pianoKeyboard.enable();
   });
 
   midiAccess.addEventListener('input_disconnected', () => {
-    pianoKeyboard.element.classList.remove('piano-keyboard--connected');
+    pianoKeyboard.disable();
   });
 
   midiAccess.addEventListener('note_on', event => {
@@ -94,8 +87,6 @@ const remoteStrip = new RemoteStrip(config.remoteStripHostname, (strip, syncRemo
   /*
    * Loop
    */
-  console.log('[ Loop ]');
-
   window.framePerSecond = 50;
   window.frameInterval = 1000 / framePerSecond;
 
