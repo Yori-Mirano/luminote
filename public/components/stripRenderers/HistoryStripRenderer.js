@@ -34,7 +34,7 @@ class HistoryStripRenderer {
 
 
   render() { // FIXME: Performance de `this.renderMap()`
-    const pixelWidth = this.canvas.width / this.strip.getLength();
+    const pixelWidth = this.canvas.width / this.strip.length;
     const pixelheight = 1;
 
     this.strip.forEach(i => {

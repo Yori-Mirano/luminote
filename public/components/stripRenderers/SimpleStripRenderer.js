@@ -34,7 +34,7 @@ class SimpleStripRenderer {
 
 
   render() {
-    const pixelWidth = this.canvas.width / this.strip.getLength();
+    const pixelWidth = this.canvas.width / this.strip.length;
     const pixelheight = this.canvas.height;
 
     this.strip.forEach(i => {

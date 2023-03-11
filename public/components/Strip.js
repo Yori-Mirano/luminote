@@ -5,7 +5,7 @@ class Strip {
   _intRawData;
   isDirty = false
 
-  constructor(length, colorPerPixel, r = 0, g = 0, b = 0, w = 0) {
+  constructor(length, colorPerPixel = 4, r = 0, g = 0, b = 0, w = 0) {
     this._stripLength   = length;
     this._colorPerPixel = colorPerPixel;
     this._floatRawData  = [new Float64Array(this._stripLength * this._colorPerPixel)];
@@ -14,7 +14,7 @@ class Strip {
     this.fill(r, g, b, w);
   }
 
-  getLength() {
+  get length() {
     return this._stripLength;
   }
 
@@ -93,8 +93,18 @@ class Strip {
   }
 
   forEach(fn) {
-    for (let i = 0, l = this.getLength(); i < l; i++) {
+    for (let i = 0, l = this.length; i < l; i++) {
       fn(i);
+    }
+  }
+
+  copyTo(otherStrip, offset = 0) {
+    for (let index = offset; index < this.length; index++) {
+      if (index >= 0 && index < otherStrip.length) {
+        const otherIndex = index - offset;
+        const color = this.get(index);
+        otherStrip.set(otherIndex, color.r, color.g, color.b, color.w);
+      }
     }
   }
 }

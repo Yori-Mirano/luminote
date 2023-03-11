@@ -6,7 +6,7 @@ class RipplesStripBehaviour {
   constructor(strip, notes) {
     this.strip = strip;
     this.notes = notes;
-    this.stripBuffer = new Strip(strip.getLength(), strip.getColorPerPixel());
+    this.stripBuffer = new Strip(strip.length, strip.getColorPerPixel());
   }
 
 
@@ -19,7 +19,7 @@ class RipplesStripBehaviour {
           leftColor = this.strip.get(i-1);
         }
   
-        if (i < this.stripBuffer.getLength() -1) {
+        if (i < this.stripBuffer.length -1) {
           rightColor = this.strip.get(i+1);
         }
   
