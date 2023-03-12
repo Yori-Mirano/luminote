@@ -1,10 +1,23 @@
 /*
  * Config
  */
+import './app.scss';
+import MidiNoteTools from "./components/MidiNoteTools";
+import PianoKeyboard from "./components/PianoKeyboard/PianoKeyboard";
+import RemoteStrip from "./components/RemoteStrip";
+import SimpleStripRenderer from "./components/stripRenderers/SimpleStripRenderer";
+import MidiAccess from "./components/MidiAccess";
+import SimpleStripBehaviour from "./components/stripBehaviours/SimpleStripBehaviour";
+import RipplesStripBehaviour from "./components/stripBehaviours/RipplesStripBehaviour";
+import AssistantStripBehaviour from "./components/stripBehaviours/AssistantStripBehaviour";
+import Strip from "./components/Strip";
+import Note from "./components/Note.interface";
+
+
 const config = {
   remoteStrip: {
-    //hostname: localStorage.remoteStripHostname = prompt('host ip', localStorage.remoteStripHostname || '192.168.xx.xx'), // TODO: create a user friendly interface
-    hostname: '192.168.1.43', // TODO: remove this dev shortcut
+    //host: localStorage.remoteStripHost = prompt('host ip', localStorage.remoteStripHost || '192.168.xx.xx'), // TODO: create a user friendly interface
+    host: '192.168.1.43', // TODO: remove this dev shortcut
     startNote: MidiNoteTools.getMidiNote('A1'),
   },
 
@@ -36,10 +49,10 @@ const strip = new Strip(config.pianoKeyboard.noteRange.end - config.pianoKeyboar
 /*
  * Remote strip
  */
-let remoteStrip;
-let syncRemoteStrip;
+let remoteStrip: Strip;
+let syncRemoteStrip:() => void;
 
-new RemoteStrip(config.remoteStrip.hostname, (_strip, _syncRemoteStrip) => {
+new RemoteStrip(config.remoteStrip.host, (_strip: Strip, _syncRemoteStrip: () => void) => {
   remoteStrip     = _strip;
   syncRemoteStrip = _syncRemoteStrip;
 });
@@ -48,14 +61,19 @@ new RemoteStrip(config.remoteStrip.hostname, (_strip, _syncRemoteStrip) => {
 /*
  * StripRenderer
  */
-const simpleStripRenderer = new SimpleStripRenderer(document.getElementById('viewport'), strip, 8);
+const stripElement = document.getElementById('strip');
+const simpleStripRenderer = new SimpleStripRenderer(stripElement, strip, 8);
 //const historyStripRenderer = new HistoryStripRenderer(document.getElementById('viewport'), strip, 8);
+
+stripElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
+stripElement.style.marginRight = pianoKeyboard.rightMargin + '%';
+requestAnimationFrame(() => simpleStripRenderer._resize());
 
 
 /*
  * Notes
  */
-const notes = [];
+const notes: Note[] = [];
 strip.forEach(i => {
   notes[i] = {
     pressed: false,
@@ -78,19 +96,19 @@ midiAccess.addEventListener('input_disconnected', () => {
   pianoKeyboard.disable();
 });
 
-midiAccess.addEventListener('note_on', event => {
+midiAccess.addEventListener('note_on', (event: CustomEvent) => {
   pianoKeyboard.pressKey(event.detail.note);
   notes[event.detail.note - config.pianoKeyboard.noteRange.start].pressed   = true;
   notes[event.detail.note - config.pianoKeyboard.noteRange.start].pedal     = pianoKeyboard.isPedalDown();
   notes[event.detail.note - config.pianoKeyboard.noteRange.start].velocity  = event.detail.velocity / 128;
 })
 
-midiAccess.addEventListener('note_off', event => {
+midiAccess.addEventListener('note_off', (event: CustomEvent) => {
   pianoKeyboard.releaseKey(event.detail.note);
   notes[event.detail.note - config.pianoKeyboard.noteRange.start].pressed = false;
 });
 
-midiAccess.addEventListener('sustain', event => {
+midiAccess.addEventListener('sustain', (event: CustomEvent) => {
   pianoKeyboard.setPedal(event.detail.level);
 
   if (pianoKeyboard.isPedalDown()) {
@@ -106,8 +124,8 @@ midiAccess.requestMidiAccess();
 /*
  * Loop
  */
-window.framePerSecond = 50;
-window.frameInterval = 1000 / framePerSecond;
+const framePerSecond = 50;
+const frameInterval = 1000 / framePerSecond;
 
 const simpleStripBehaviour = new SimpleStripBehaviour(strip, notes);
 const ripplesStripBehaviour = new RipplesStripBehaviour(strip, notes);

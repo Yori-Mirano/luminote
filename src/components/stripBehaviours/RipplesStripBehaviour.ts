@@ -1,9 +1,12 @@
-class RipplesStripBehaviour {
+import Strip from "../Strip";
+import Note from "../Note.interface";
+
+export default class RipplesStripBehaviour {
   strip;
   notes;
   stripBuffer;
 
-  constructor(strip, notes) {
+  constructor(strip: Strip, notes: Note[]) {
     this.strip = strip;
     this.notes = notes;
     this.stripBuffer = new Strip(strip.length, strip.getColorPerPixel());

@@ -1,23 +1,25 @@
-class RemoteStrip {
-  hostname;
-  onData;
-  socket;
-  strip;
-  fpsMax;
+import Strip from "./Strip";
+
+export default class RemoteStrip {
+  host: string;
+  socket: WebSocket;
+  strip: Strip;
+  fpsMax: number;
   modeEcoDelay = 60; // in seconds
   _lastSyncTime = 0;
-  _modeEcoTimeInterval;
+  _modeEcoTimeInterval: ReturnType<typeof setInterval>;
   _isEcoMode = false;
   _isClosed = true;
+  onConnected: (strip: Strip, syncRemoteStrip: () => void) => void
 
-  constructor(hostname, callback) {
-    this.hostname = hostname;
-    this.callback = callback;
+  constructor(host: string, callback: (strip: Strip, syncRemoteStrip: () => void) => void) {
+    this.host = host;
+    this.onConnected = callback;
     this.connect();
   }
 
   connect() {
-    this.socket = new WebSocket(`ws://${this.hostname}`);
+    this.socket = new WebSocket(`ws://${this.host}`);
 
     // onopen
     this.socket.onopen = () => {
@@ -38,8 +40,8 @@ class RemoteStrip {
           this.fpsMax = jsonData.fpsMax;
           this.strip = new Strip(jsonData.stripLength, jsonData.colorPerPixel);
 
-          if (typeof this.callback === 'function') {
-            this.callback(this.strip, () => this.sync());
+          if (typeof this.onConnected === 'function') {
+            this.onConnected(this.strip, () => this.sync());
           }
 
           this._modeEcoTimeInterval = setInterval(() => this._isEcoMode = true, this.modeEcoDelay * 1000);
@@ -61,7 +63,7 @@ class RemoteStrip {
 
 
     // onerror
-    this.socket.onerror = (err) => {
+    this.socket.onerror = (err: ErrorEvent) => {
       console.error('RemoteStrip -> Websocket: Socket encountered error: ', err.message, ' Closing socket');
       this.socket.close();
     };

@@ -1,6 +1,6 @@
-class MidiNoteTools {
+export default class MidiNoteTools {
     static MIDI_TO_NAME = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    static NAME_TO_MIDI = {'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11}
+    static NAME_TO_MIDI: {[key: string] : number} = {'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11}
 
 
     /**
@@ -8,7 +8,7 @@ class MidiNoteTools {
      * @param   {number}    midiNote Code midi de la note
      * @returns {string} Nom de la note
      */
-    static getName(midiNote)
+    static getName(midiNote: number)
     {
         return MidiNoteTools.MIDI_TO_NAME[midiNote % 12];
     }
@@ -17,9 +17,9 @@ class MidiNoteTools {
     /**
      * @param {string} completeNoteName Note name + octave (ex: A5)
      */
-    static getMidiNote(completeNoteName) {
+    static getMidiNote(completeNoteName: string) {
         let [, noteName, octave] = /^([a-gA-G]#?)(\d)$/.exec(completeNoteName) || [];
-        return MidiNoteTools.NAME_TO_MIDI[noteName.toUpperCase()] + octave * 12;
+        return MidiNoteTools.NAME_TO_MIDI[noteName.toUpperCase()] + Number(octave) * 12;
     }
 
 
@@ -28,7 +28,7 @@ class MidiNoteTools {
      * @param   {number} midiNote Code midi de la note
      * @returns {number} Numéro de l'octave de la note
      */
-    static getOctave(midiNote)
+    static getOctave(midiNote: number)
     {
         return Math.floor(midiNote / 12);
     }
@@ -38,7 +38,7 @@ class MidiNoteTools {
      * @param {number} midiNote
      * @returns {number}
      */
-    static getFrequency(midiNote) {
+    static getFrequency(midiNote: number) {
         return Math.pow(2, ((midiNote - 69) / 12)) * 440;
     }
 
@@ -48,7 +48,7 @@ class MidiNoteTools {
    * @param   {number} fromMidiNote
    * @returns {number}
    */
-    static getPreviousMidiNoteByName(name, fromMidiNote) {
+    static getPreviousMidiNoteByName(name: string, fromMidiNote: number) {
       let noteIndex = fromMidiNote;
 
       do {
@@ -64,7 +64,7 @@ class MidiNoteTools {
    * @param   {number} fromMidiNote
    * @returns {number}
    */
-  static getNextMidiNoteByName(name, fromMidiNote) {
+  static getNextMidiNoteByName(name: string, fromMidiNote: number) {
     let noteIndex = fromMidiNote;
 
     do {

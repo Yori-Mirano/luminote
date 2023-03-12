@@ -1,14 +1,21 @@
-class Strip {
+interface Color {
+  r: number;
+  g: number;
+  b: number;
+  w?: number;
+}
+
+export default class Strip {
   _stripLength;
   _colorPerPixel;
   _floatRawData;
   _intRawData;
   isDirty = false
 
-  constructor(length, colorPerPixel = 4, r = 0, g = 0, b = 0, w = 0) {
+  constructor(length: number, colorPerPixel = 4, r = 0, g = 0, b = 0, w = 0) {
     this._stripLength   = length;
     this._colorPerPixel = colorPerPixel;
-    this._floatRawData  = [new Float64Array(this._stripLength * this._colorPerPixel)];
+    this._floatRawData  = new Float64Array(this._stripLength * this._colorPerPixel);
     this._intRawData    = new Uint8Array(this._stripLength * this._colorPerPixel);
 
     this.fill(r, g, b, w);
@@ -22,7 +29,7 @@ class Strip {
     return this._colorPerPixel;
   }
 
-  set(index, r, g, b, w = 0) {
+  set(index: number , r: number, g: number, b: number, w = 0) {
     const lastR = this._floatRawData[index * this._colorPerPixel];
     const lastG = this._floatRawData[index * this._colorPerPixel + 1];
     const lastB = this._floatRawData[index * this._colorPerPixel + 2];
@@ -54,8 +61,8 @@ class Strip {
     }
   }
 
-  get(index) {
-    const color = {
+  get(index: number) {
+    const color: Color = {
       r: this._floatRawData[index * this._colorPerPixel],
       g: this._floatRawData[index * this._colorPerPixel +1],
       b: this._floatRawData[index * this._colorPerPixel +2],
@@ -68,8 +75,8 @@ class Strip {
     return color;
   }
 
-  getInt(index) {
-    const color = {
+  getInt(index: number) {
+    const color: Color = {
       r: this._intRawData[index * this._colorPerPixel],
       g: this._intRawData[index * this._colorPerPixel +1],
       b: this._intRawData[index * this._colorPerPixel +2],
@@ -82,7 +89,7 @@ class Strip {
     return color;
   }
 
-  fill(r, g, b, w = 0) {
+  fill(r: number, g: number, b: number, w = 0) {
     for (let i = 0; i < this._stripLength; i++) {
       this.set(i, r, b, b, w);
     }
@@ -92,13 +99,13 @@ class Strip {
     return this._intRawData;
   }
 
-  forEach(fn) {
+  forEach(fn:(i: number) => void) {
     for (let i = 0, l = this.length; i < l; i++) {
       fn(i);
     }
   }
 
-  copyTo(otherStrip, offset = 0) {
+  copyTo(otherStrip: Strip, offset = 0) {
     for (let index = offset; index < this.length; index++) {
       if (index >= 0 && index < otherStrip.length) {
         const otherIndex = index - offset;

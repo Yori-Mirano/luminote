@@ -1,18 +1,12 @@
-/**
- * @external MIDIAccess
- * @see https://developer.mozilla.org/en-US/docs/Web/API/MIDIAccess
- */
+import MIDIAccess = WebMidi.MIDIAccess;
+import MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
-/**
- * @external MIDIMessageEvent
- * @see https://developer.mozilla.org/en-US/docs/Web/API/MIDIMessageEvent
- */
-
-class MidiAccess extends EventTarget {
+export default class MidiAccess extends EventTarget {
   requestMidiAccess() {
     if (navigator.requestMIDIAccess) {
-      navigator.requestMIDIAccess({ sysex: false, software: false })
-        .then(this._onMidiSuccess, this._onMidiFailure);
+      navigator.requestMIDIAccess({ sysex: false })
+        .then(this._onMidiSuccess)
+        .catch(this._onMidiFailure);
 
     } else {
       alert("No MIDI support in your browser. Please try with Google Chrome.");
@@ -26,7 +20,7 @@ class MidiAccess extends EventTarget {
    * @fires MidiAccess#input_connected
    * @fires MidiAccess#input_disconnected
    */
-  _onMidiSuccess = midiAccess => {
+  _onMidiSuccess = (midiAccess: MIDIAccess) => {
     console.log('MidiAccess -> API: OK');
 
     midiAccess.addEventListener("statechange", event => {
@@ -81,7 +75,7 @@ class MidiAccess extends EventTarget {
    *
    * @param {string} error
    */
-  _onMidiFailure = error => {
+  _onMidiFailure = (error: string) => {
     console.log("MidiAccess: No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + error);
   };
 
@@ -90,7 +84,7 @@ class MidiAccess extends EventTarget {
    *
    * @param {MIDIAccess} midiAccess
    */
-  _connectInput(midiAccess) {
+  _connectInput(midiAccess: MIDIAccess) {
     const inputs = midiAccess.inputs.values();
 
     for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
@@ -118,10 +112,10 @@ class MidiAccess extends EventTarget {
    * @fires MidiAccess#sustain
    * @fires MidiAccess#softPedal
    */
-  _onMidiMessage = event => {
+  _onMidiMessage = (event: MIDIMessageEvent) => {
     let data      = event.data,
         status    = data[0] & 0xF0,
-        channel   = data[0] & 0x0F,
+        //channel   = data[0] & 0x0F,
         data1     = data[1],
         data2     = data[2];
 

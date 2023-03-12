@@ -1,0 +1,39 @@
+.pianoKeyboard {
+  position:   relative;
+  display:    flex;
+  transition: filter 1s;
+
+  &.-disabled {
+    filter: brightness(0.5);
+  }
+
+  &_blackKeys {
+    position: absolute;
+    inset:    0;
+    bottom:   33%;
+    display:  flex;
+
+    > * {
+      flex-grow: 1;
+    }
+  }
+
+  &_key {
+    flex-grow:  1;
+    transition: background-color 150ms;
+
+    &.-white {
+      aspect-ratio: 1/6;
+      background:   #fff;
+      &.-pedal { background: rgb(164, 211, 238); }
+      &.-on    { background: rgb(231 185 102); }
+    }
+
+    &.-black {
+      border-radius: 0 0 .3vw .3vw;
+      background:    #2b2b2b;
+      &.-pedal { background: rgb(62, 137, 187); }
+      &.-on    { background: rgb(187 137 62); }
+    }
+  }
+}

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/piano-lumen-browser.iml" filepath="$PROJECT_DIR$/.idea/piano-lumen-browser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/luminote.iml" filepath="$PROJECT_DIR$/.idea/luminote.iml" />
     </modules>
   </component>
 </project>

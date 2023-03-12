@@ -1,13 +1,16 @@
+import './PianoKeyboard.scss';
+import MidiNoteTools from "../MidiNoteTools";
+
 /**
  * @external MidiNoteTools
  */
-class PianoKeyboard {
+export default class PianoKeyboard {
   /**
    * Retourne `true` si la note correspond à une touche noire d'une clavier de piano.
-   * @param   {int}     midiNote Code midi de la note
+   * @param   {number}     midiNote Code midi de la note
    * @returns {boolean}
    */
-  static isBlackKey(midiNote)
+  static isBlackKey(midiNote: number)
   {
     return MidiNoteTools.getName(midiNote).indexOf('#') !== -1;
   }
@@ -15,20 +18,20 @@ class PianoKeyboard {
 
   /**
    * Retourne `true` si la note correspond à une touche blanche d'une clavier de piano.
-   * @param   {int}     midiNote Code midi de la note
+   * @param   {number}     midiNote Code midi de la note
    * @returns {boolean}
    */
-  static isWhiteKey(midiNote)
+  static isWhiteKey(midiNote: number)
   {
     return !PianoKeyboard.isBlackKey(midiNote);
   }
 
-  element;
-  noteStart;
-  noteEnd;
+  element: HTMLElement;
+  noteStart: number;
+  noteEnd: number;
   pedalThreshold = 43;
   pedalLevel = 0;
-  keys = {};
+  keys: {[key: number] : HTMLElement} = {};
 
 
   /**
@@ -37,7 +40,7 @@ class PianoKeyboard {
    * @param noteStart {number|string}
    * @param noteEnd   {number|string}
    */
-  constructor(element, noteStart = 'A1', noteEnd= 'C9') {
+  constructor(element: HTMLElement, noteStart: string|number = 'A1', noteEnd: string|number = 'C9') {
     this.element        = element;
 
     if (typeof noteStart === 'string') {
@@ -46,7 +49,7 @@ class PianoKeyboard {
       this.noteStart      = noteStart;
     }
 
-    if (typeof noteStart === 'string') {
+    if (typeof noteEnd === 'string') {
       this.noteEnd        = MidiNoteTools.getMidiNote(noteEnd);
     } else {
       this.noteEnd        = noteEnd;
@@ -124,7 +127,7 @@ class PianoKeyboard {
    *
    * @param midiNote {number}
    */
-  pressKey(midiNote) {
+  pressKey(midiNote: number) {
     if (this.keys[midiNote]) {
       this.keys[midiNote].classList.add('-on');
 
@@ -138,7 +141,7 @@ class PianoKeyboard {
    *
    * @param midiNote {number}
    */
-  releaseKey(midiNote) {
+  releaseKey(midiNote: number) {
     if (this.keys[midiNote]) {
       this.keys[midiNote].classList.remove('-on');
     }
@@ -148,7 +151,7 @@ class PianoKeyboard {
    *
    * @param level {number}
    */
-  setPedal(level) {
+  setPedal(level: number) {
     this.pedalLevel = level;
 
     if (this.isPedalDown()) {

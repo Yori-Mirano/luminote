@@ -1,11 +1,13 @@
-class HistoryStripRenderer {
-  parentElement
-  strip;
-  factor;
-  canvas;
-  context;
+import Strip from "../Strip";
 
-  constructor(parentElement, strip, factor = 1) {
+export default class HistoryStripRenderer {
+  parentElement: HTMLElement
+  strip: Strip;
+  factor: number;
+  canvas: HTMLCanvasElement;
+  context: CanvasRenderingContext2D;
+
+  constructor(parentElement: HTMLElement, strip: Strip, factor = 1) {
     this.parentElement = parentElement;
     this.strip = strip;
     this.factor = factor;

@@ -1,8 +1,11 @@
-class SimpleStripBehaviour {
+import Strip from "../Strip";
+import Note from "../Note.interface";
+
+export default class SimpleStripBehaviour {
   strip;
   notes;
 
-  constructor(strip, notes) {
+  constructor(strip: Strip, notes: Note[]) {
     this.strip = strip;
     this.notes = notes;
   }
