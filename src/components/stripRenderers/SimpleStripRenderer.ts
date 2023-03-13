@@ -1,6 +1,6 @@
-import Strip from "../Strip";
+import { Strip } from "../Strip";
 
-export default class SimpleStripRenderer {
+export class SimpleStripRenderer {
   parentElement: HTMLElement
   strip: Strip;
   factor: number;

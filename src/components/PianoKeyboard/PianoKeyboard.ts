@@ -1,16 +1,16 @@
 import './PianoKeyboard.scss';
-import MidiNoteTools from "../MidiNoteTools";
+import { MidiNoteTools } from "../MidiNoteTools";
 
 /**
  * @external MidiNoteTools
  */
-export default class PianoKeyboard {
+export class PianoKeyboard {
   /**
    * Retourne `true` si la note correspond à une touche noire d'une clavier de piano.
-   * @param   {number}     midiNote Code midi de la note
-   * @returns {boolean}
+   * @param   midiNote - Code midi de la note
+   * @returns
    */
-  static isBlackKey(midiNote: number)
+  static isBlackKey(midiNote: number): boolean
   {
     return MidiNoteTools.getName(midiNote).indexOf('#') !== -1;
   }
@@ -18,10 +18,10 @@ export default class PianoKeyboard {
 
   /**
    * Retourne `true` si la note correspond à une touche blanche d'une clavier de piano.
-   * @param   {number}     midiNote Code midi de la note
-   * @returns {boolean}
+   * @param   midiNote - Code midi de la note
+   * @returns
    */
-  static isWhiteKey(midiNote: number)
+  static isWhiteKey(midiNote: number): boolean
   {
     return !PianoKeyboard.isBlackKey(midiNote);
   }
@@ -36,9 +36,9 @@ export default class PianoKeyboard {
 
   /**
    *
-   * @param element   {HTMLElement}
-   * @param noteStart {number|string}
-   * @param noteEnd   {number|string}
+   * @param element
+   * @param noteStart
+   * @param noteEnd
    */
   constructor(element: HTMLElement, noteStart: string|number = 'A1', noteEnd: string|number = 'C9') {
     this.element        = element;
@@ -58,17 +58,10 @@ export default class PianoKeyboard {
     this.init();
   }
 
-  /**
-   *
-   * @returns {number}
-   */
-  get totalKeys() {
+  get totalKeys(): number {
     return this.noteEnd - this.noteStart + 1;
   }
 
-  /**
-   *
-   */
   init() {
     const keyboardBlackKeyContainer = document.createElement('div');
     keyboardBlackKeyContainer.classList.add('pianoKeyboard_blackKeys');
@@ -125,7 +118,7 @@ export default class PianoKeyboard {
 
   /**
    *
-   * @param midiNote {number}
+   * @param midiNote
    */
   pressKey(midiNote: number) {
     if (this.keys[midiNote]) {
@@ -137,9 +130,10 @@ export default class PianoKeyboard {
     }
   }
 
+
   /**
    *
-   * @param midiNote {number}
+   * @param midiNote
    */
   releaseKey(midiNote: number) {
     if (this.keys[midiNote]) {
@@ -149,7 +143,7 @@ export default class PianoKeyboard {
 
   /**
    *
-   * @param level {number}
+   * @param level
    */
   setPedal(level: number) {
     this.pedalLevel = level;
@@ -170,11 +164,7 @@ export default class PianoKeyboard {
   }
 
 
-  /**
-   *
-   * @returns {number}
-   */
-  getWhiteKeyCount(from = this.noteStart, to = this.noteEnd) {
+  getWhiteKeyCount(from = this.noteStart, to = this.noteEnd): number {
     let whiteKeyCount = 0;
 
     for (let midiNote = from; midiNote <= to; midiNote++) {
@@ -187,11 +177,7 @@ export default class PianoKeyboard {
   }
 
 
-  /**
-   *
-   * @returns {number}
-   */
-  getBlackKeyCount(from = this.noteStart, to = this.noteEnd) {
+  getBlackKeyCount(from = this.noteStart, to = this.noteEnd): number {
     let blackKeyCount = 0;
 
     for (let midiNote = from; midiNote <= to; midiNote++) {
@@ -204,11 +190,7 @@ export default class PianoKeyboard {
   }
 
 
-  /**
-   *
-   * @returns {number}
-   */
-  getKeyCount() {
+  getKeyCount(): number {
     return this.noteEnd - this.noteStart + 1;
   }
 }

@@ -1,7 +1,7 @@
-import Strip from "../Strip";
-import Note from "../Note.interface";
+import { Strip } from "../Strip";
+import { Note } from "../Note.interface";
 
-export default class RipplesStripBehaviour {
+export class RipplesStripBehaviour {
   strip;
   notes;
   stripBuffer;

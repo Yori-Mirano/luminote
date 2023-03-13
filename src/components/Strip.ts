@@ -1,11 +1,11 @@
-interface Color {
+export interface Color {
   r: number;
   g: number;
   b: number;
   w?: number;
 }
 
-export default class Strip {
+export class Strip {
   _stripLength;
   _colorPerPixel;
   _floatRawData;

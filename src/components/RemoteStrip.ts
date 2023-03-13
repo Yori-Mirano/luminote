@@ -1,6 +1,6 @@
-import Strip from "./Strip";
+import { Strip } from "./Strip";
 
-export default class RemoteStrip {
+export class RemoteStrip {
   host: string;
   socket: WebSocket;
   strip: Strip;

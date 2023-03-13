@@ -2,17 +2,16 @@
  * Config
  */
 import './app.scss';
-import MidiNoteTools from "./components/MidiNoteTools";
-import PianoKeyboard from "./components/PianoKeyboard/PianoKeyboard";
-import RemoteStrip from "./components/RemoteStrip";
-import SimpleStripRenderer from "./components/stripRenderers/SimpleStripRenderer";
-import MidiAccess from "./components/MidiAccess";
-import SimpleStripBehaviour from "./components/stripBehaviours/SimpleStripBehaviour";
-import RipplesStripBehaviour from "./components/stripBehaviours/RipplesStripBehaviour";
-import AssistantStripBehaviour from "./components/stripBehaviours/AssistantStripBehaviour";
-import Strip from "./components/Strip";
-import Note from "./components/Note.interface";
-
+import { MidiNoteTools } from "./components/MidiNoteTools";
+import { PianoKeyboard } from "./components/PianoKeyboard/PianoKeyboard";
+import { RemoteStrip } from "./components/RemoteStrip";
+import { SimpleStripRenderer } from "./components/stripRenderers/SimpleStripRenderer";
+import { MidiAccess, NoteOffEvent, NoteOnEvent, SustainEvent } from "./components/MidiAccess";
+import { SimpleStripBehaviour } from "./components/stripBehaviours/SimpleStripBehaviour";
+import { RipplesStripBehaviour } from "./components/stripBehaviours/RipplesStripBehaviour";
+import { AssistantStripBehaviour } from "./components/stripBehaviours/AssistantStripBehaviour";
+import { Strip } from "./components/Strip";
+import { Note } from "./components/Note.interface";
 
 const config = {
   remoteStrip: {
@@ -88,27 +87,27 @@ strip.forEach(i => {
  */
 const midiAccess = new MidiAccess();
 
-midiAccess.addEventListener('input_connected', () => {
+midiAccess.addEventListener(MidiAccess.ON_INPUT_CONNECTED, () => {
   pianoKeyboard.enable();
 });
 
-midiAccess.addEventListener('input_disconnected', () => {
+midiAccess.addEventListener(MidiAccess.ON_INPUT_DISCONNECTED, () => {
   pianoKeyboard.disable();
 });
 
-midiAccess.addEventListener('note_on', (event: CustomEvent) => {
+midiAccess.addEventListener(MidiAccess.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
   pianoKeyboard.pressKey(event.detail.note);
   notes[event.detail.note - config.pianoKeyboard.noteRange.start].pressed   = true;
   notes[event.detail.note - config.pianoKeyboard.noteRange.start].pedal     = pianoKeyboard.isPedalDown();
   notes[event.detail.note - config.pianoKeyboard.noteRange.start].velocity  = event.detail.velocity / 128;
 })
 
-midiAccess.addEventListener('note_off', (event: CustomEvent) => {
+midiAccess.addEventListener(MidiAccess.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
   pianoKeyboard.releaseKey(event.detail.note);
   notes[event.detail.note - config.pianoKeyboard.noteRange.start].pressed = false;
 });
 
-midiAccess.addEventListener('sustain', (event: CustomEvent) => {
+midiAccess.addEventListener(MidiAccess.ON_SUSTAIN, (event: CustomEvent<SustainEvent>) => {
   pianoKeyboard.setPedal(event.detail.level);
 
   if (pianoKeyboard.isPedalDown()) {
