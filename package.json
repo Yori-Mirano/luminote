@@ -31,5 +31,8 @@
     "webpack": "^5.76.1",
     "webpack-cli": "^5.0.1",
     "webpack-dev-server": "^4.11.1"
+  },
+  "dependencies": {
+    "glslCanvas": "^0.2.6"
   }
 }

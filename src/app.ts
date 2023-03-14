@@ -2,16 +2,17 @@
  * Config
  */
 import './app.scss';
-import { MidiNoteTools } from "./components/MidiNoteTools";
-import { PianoKeyboard } from "./components/PianoKeyboard/PianoKeyboard";
-import { RemoteStrip } from "./components/RemoteStrip";
-import { SimpleStripRenderer } from "./components/stripRenderers/SimpleStripRenderer";
-import { MidiAccess, NoteOffEvent, NoteOnEvent, SustainEvent } from "./components/MidiAccess";
-import { SimpleStripBehaviour } from "./components/stripBehaviours/SimpleStripBehaviour";
-import { RipplesStripBehaviour } from "./components/stripBehaviours/RipplesStripBehaviour";
-import { AssistantStripBehaviour } from "./components/stripBehaviours/AssistantStripBehaviour";
-import { Strip } from "./components/Strip";
-import { Note } from "./components/Note.interface";
+import { MidiNoteTools } from "./app/MidiNoteTools";
+import { PianoKeyboard } from "./app/PianoKeyboard/PianoKeyboard";
+import { RemoteStrip } from "./app/RemoteStrip";
+import { SimpleStripRenderer } from "./app/stripRenderers/SimpleStripRenderer";
+import { MidiAccess, NoteOffEvent, NoteOnEvent, SustainEvent } from "./app/MidiAccess";
+import { SimpleStripBehaviour } from "./app/stripBehaviours/SimpleStripBehaviour";
+import { RipplesStripBehaviour } from "./app/stripBehaviours/RipplesStripBehaviour";
+import { AssistantStripBehaviour } from "./app/stripBehaviours/AssistantStripBehaviour";
+import { Strip } from "./app/Strip";
+import { Note } from "./app/Note.interface";
+import { GlslStripRenderer } from "./app/stripRenderers/GlslStripRenderer";
 
 const config = {
   remoteStrip: {
@@ -60,12 +61,15 @@ new RemoteStrip(config.remoteStrip.host, (_strip: Strip, _syncRemoteStrip: () =>
 /*
  * StripRenderer
  */
-const stripElement = document.getElementById('strip');
-const simpleStripRenderer = new SimpleStripRenderer(stripElement, strip, 8);
-//const historyStripRenderer = new HistoryStripRenderer(document.getElementById('viewport'), strip, 8);
+const simpleStripRenderer = new SimpleStripRenderer(document.getElementById('strip'), strip, 8);
+const glslStripRenderer = new GlslStripRenderer(document.getElementById('viewport'), strip, 4);
 
-stripElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
-stripElement.style.marginRight = pianoKeyboard.rightMargin + '%';
+glslStripRenderer.parentElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
+glslStripRenderer.parentElement.style.marginRight = pianoKeyboard.rightMargin + '%';
+requestAnimationFrame(() => glslStripRenderer._resize());
+
+simpleStripRenderer.parentElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
+simpleStripRenderer.parentElement.style.marginRight = pianoKeyboard.rightMargin + '%';
 requestAnimationFrame(() => simpleStripRenderer._resize());
 
 
@@ -123,7 +127,7 @@ midiAccess.requestMidiAccess();
 /*
  * Loop
  */
-const framePerSecond = 50;
+const framePerSecond = 60;
 const frameInterval = 1000 / framePerSecond;
 
 const simpleStripBehaviour = new SimpleStripBehaviour(strip, notes);
@@ -142,7 +146,7 @@ function loop() {
   }
 
   simpleStripRenderer.render();
-  //historyStripRenderer.render();
+  glslStripRenderer.render();
 
   setTimeout(loop, frameInterval);
 }
