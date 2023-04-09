@@ -158,33 +158,17 @@ export class MidiAccess extends EventTarget {
       // Note On/Off
       case 0x90: {
         if (/* Velocity: */ data2 > 0) {
-          const event: CustomEventInit<NoteOnEvent> = {
-            detail: {
-              note: data1,
-              velocity: data2
-            }
-          };
-          this.dispatchEvent(new CustomEvent(MidiAccess.ON_NOTE_ON, event));
+          this.triggerNoteOn(data1 /* note */, data2 /*velocity */);
 
         } else {
-          const event: CustomEventInit<NoteOffEvent> = {
-            detail: {
-              note: data1
-            }
-          };
-          this.dispatchEvent(new CustomEvent(MidiAccess.ON_NOTE_OFF, event));
+          this.triggerNoteOff(data1 /* note */);
         }
         break;
       }
 
       // Note Off
       case 0x80: {
-        const event: CustomEventInit<NoteOffEvent> = {
-          detail: {
-            note: data1
-          }
-        };
-        this.dispatchEvent(new CustomEvent(MidiAccess.ON_NOTE_OFF, event));
+        this.triggerNoteOff(data1 /* note */);
         break;
       }
 
@@ -193,23 +177,13 @@ export class MidiAccess extends EventTarget {
         switch (/* Controller type: */ data1) {
           // Sustain
           case 0x40: {
-            const event: CustomEventInit<SustainEvent> = {
-              detail: {
-                level: data2
-              }
-            };
-            this.dispatchEvent(new CustomEvent(MidiAccess.ON_SUSTAIN, event));
+            this.triggerSustain(data2 /* level */);
             break;
           }
 
           // Soft Pedal
           case 0x43: {
-            const event: CustomEventInit<SoftPedalEvent> = {
-              detail: {
-                level: data2
-              }
-            };
-            this.dispatchEvent(new CustomEvent(MidiAccess.ON_SOFT_PEDAL, event));
+            this.triggerSoftPedal(data2 /* level */);
             break;
           }
         }
@@ -224,4 +198,41 @@ export class MidiAccess extends EventTarget {
         //console.log('MidiAccess -> data: ' + data);
     }
   };
+
+  triggerNoteOn(note: number, velocity: number) {
+    const event: CustomEventInit<NoteOnEvent> = {
+      detail: {
+        note: note,
+        velocity: velocity
+      }
+    };
+    this.dispatchEvent(new CustomEvent(MidiAccess.ON_NOTE_ON, event));
+  }
+
+  triggerNoteOff(note: number) {
+    const event: CustomEventInit<NoteOffEvent> = {
+      detail: {
+        note: note
+      }
+    };
+    this.dispatchEvent(new CustomEvent(MidiAccess.ON_NOTE_OFF, event));
+  }
+
+  triggerSustain(level: number) {
+    const event: CustomEventInit<SustainEvent> = {
+      detail: {
+        level: level
+      }
+    };
+    this.dispatchEvent(new CustomEvent(MidiAccess.ON_SUSTAIN, event));
+  }
+
+  triggerSoftPedal(level: number) {
+    const event: CustomEventInit<SoftPedalEvent> = {
+      detail: {
+        level: level
+      }
+    };
+    this.dispatchEvent(new CustomEvent(MidiAccess.ON_SOFT_PEDAL, event));
+  }
 }
