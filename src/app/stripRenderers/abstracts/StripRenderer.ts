@@ -1,4 +1,4 @@
-import { Strip } from "../Strip";
+import { Strip } from "../../Strip";
 
 export abstract class StripRenderer {
   parentElement: HTMLElement
@@ -6,7 +6,7 @@ export abstract class StripRenderer {
   factor: number;
   canvas: HTMLCanvasElement;
 
-  protected constructor(parentElement: HTMLElement, strip: Strip, factor = 1) {
+  public constructor(parentElement: HTMLElement, strip: Strip, factor = 1) {
     this.parentElement = parentElement;
     this.strip = strip;
     this.factor = factor;
@@ -21,6 +21,8 @@ export abstract class StripRenderer {
     window.addEventListener('resize', () => {
       this._resize();
     });
+
+    this.onInit();
   }
 
   _resize() {
@@ -28,5 +30,10 @@ export abstract class StripRenderer {
     this.canvas.width  = this.parentElement.clientWidth;
   }
 
-  abstract render(): void;
+  render() {
+    this.onRender();
+  }
+
+  abstract onInit(): void;
+  abstract onRender(): void;
 }

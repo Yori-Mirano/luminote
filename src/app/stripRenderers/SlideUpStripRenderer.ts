@@ -1,15 +1,9 @@
-import GlslCanvas from "glslCanvas";
-import { Strip } from "../Strip";
-import { StripRenderer } from "./StripRenderer";
+import { GlslStripRenderer } from "./abstracts/GlslStripRenderer";
 
-export class GlslStripRenderer extends StripRenderer {
-  glslCanvas: GlslCanvas;
-
-  constructor(parentElement: HTMLElement, strip: Strip, factor = 1) {
-    super(parentElement, strip, factor);
-
+export class SlideUpStripRenderer extends GlslStripRenderer {
+  onInitFragment(): string {
     /* language=glsl */
-    const fragment = `
+    return `
       #ifdef GL_ES
         precision mediump float;
       #endif
@@ -83,12 +77,5 @@ export class GlslStripRenderer extends StripRenderer {
         #endif
       }
     `;
-
-    this.glslCanvas = new GlslCanvas(this.canvas, { fragmentString: fragment });
-  }
-
-
-  render() {
-    this.glslCanvas.setUniform('u_array', ...this.strip._floatRawData);
   }
 }

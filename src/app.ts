@@ -5,14 +5,14 @@ import './app.scss';
 import { MidiNoteTools } from "./app/MidiNoteTools";
 import { PianoKeyboard } from "./app/PianoKeyboard/PianoKeyboard";
 import { RemoteStrip } from "./app/RemoteStrip";
-import { SimpleStripRenderer } from "./app/stripRenderers/SimpleStripRenderer";
+import { LineStripRenderer } from "./app/stripRenderers/LineStripRenderer";
+import { SlideUpStripRenderer } from "./app/stripRenderers/SlideUpStripRenderer";
 import { MidiAccess, NoteOffEvent, NoteOnEvent, SustainEvent } from "./app/MidiAccess";
 import { SimpleStripBehaviour } from "./app/stripBehaviours/SimpleStripBehaviour";
 import { RipplesStripBehaviour } from "./app/stripBehaviours/RipplesStripBehaviour";
 import { AssistantStripBehaviour } from "./app/stripBehaviours/AssistantStripBehaviour";
 import { Strip } from "./app/Strip";
 import { Note } from "./app/Note.interface";
-import { GlslStripRenderer } from "./app/stripRenderers/GlslStripRenderer";
 
 const config = {
   remoteStrip: {
@@ -28,6 +28,8 @@ const config = {
     }
   },
 }
+
+const remoteStripOffset = config.remoteStrip.startNote - config.pianoKeyboard.noteRange.start;
 
 
 /*
@@ -61,16 +63,15 @@ new RemoteStrip(config.remoteStrip.host, (_strip: Strip, _syncRemoteStrip: () =>
 /*
  * StripRenderer
  */
-const simpleStripRenderer = new SimpleStripRenderer(document.getElementById('strip'), strip, 8);
-const glslStripRenderer = new GlslStripRenderer(document.getElementById('viewport'), strip, 4);
+const stripElement = document.getElementById('strip');
+stripElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
+stripElement.style.marginRight = pianoKeyboard.rightMargin + '%';
+const lineStripRenderer = new LineStripRenderer(stripElement, strip, 8);
 
-glslStripRenderer.parentElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
-glslStripRenderer.parentElement.style.marginRight = pianoKeyboard.rightMargin + '%';
-requestAnimationFrame(() => glslStripRenderer._resize());
-
-simpleStripRenderer.parentElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
-simpleStripRenderer.parentElement.style.marginRight = pianoKeyboard.rightMargin + '%';
-requestAnimationFrame(() => simpleStripRenderer._resize());
+const viewportElement = document.getElementById('viewport');
+viewportElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
+viewportElement.style.marginRight = pianoKeyboard.rightMargin + '%';
+const slideUpStripRenderer = new SlideUpStripRenderer(viewportElement, strip, 4);
 
 
 /*
@@ -140,23 +141,20 @@ pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_OFF, (event: CustomEvent<No
 const framePerSecond = 60;
 const frameInterval = 1000 / framePerSecond;
 
-const simpleStripBehaviour = new SimpleStripBehaviour(strip, notes);
+//const simpleStripBehaviour = new SimpleStripBehaviour(strip, notes);
 const ripplesStripBehaviour = new RipplesStripBehaviour(strip, notes);
-const assistantStripBehaviour = new AssistantStripBehaviour(strip, notes);
+//const assistantStripBehaviour = new AssistantStripBehaviour(strip, notes);
 
 function loop() {
-  //simpleStripBehaviour.update();
   ripplesStripBehaviour.update()
-  //assistantStripBehaviour.update()
 
   if (remoteStrip && syncRemoteStrip) {
-    const remoteStripOffset = config.remoteStrip.startNote - config.pianoKeyboard.noteRange.start;
     strip.copyTo(remoteStrip, remoteStripOffset);
     syncRemoteStrip();
   }
 
-  simpleStripRenderer.render();
-  glslStripRenderer.render();
+  lineStripRenderer.render();
+  slideUpStripRenderer.render();
 
   setTimeout(loop, frameInterval);
 }

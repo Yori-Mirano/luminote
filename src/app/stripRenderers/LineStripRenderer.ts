@@ -1,16 +1,7 @@
-import { Strip } from "../Strip";
-import { StripRenderer } from "./StripRenderer";
+import { CanvasStripRenderer } from "./abstracts/CanvasStripRenderer";
 
-export class SimpleStripRenderer extends StripRenderer {
-  context: CanvasRenderingContext2D;
-
-  constructor(parentElement: HTMLElement, strip: Strip, factor = 1) {
-    super(parentElement, strip, factor);
-
-    this.context = this.canvas.getContext('2d');
-  }
-
-  render() {
+export class LineStripRenderer extends CanvasStripRenderer {
+  onRender() {
     const pixelWidth = this.canvas.width / this.strip.length;
     const pixelheight = this.canvas.height;
 
