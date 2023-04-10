@@ -1,10 +1,33 @@
 import './PianoKeyboard.scss';
 import { MidiNoteTools } from "../MidiNoteTools";
 
+export interface NoteOnEvent {
+  /** Midi note id from 0 to 127 */
+  note: number;
+
+  /** Velocity from 0 to 127 */
+  velocity: number;
+}
+
+export interface NoteOffEvent {
+  /** Midi note id from 0 to 127 */
+  note: number;
+}
+
 /**
  * @external MidiNoteTools
  */
-export class PianoKeyboard {
+export class PianoKeyboard extends EventTarget{
+  /**
+   * @eventProperty
+   */
+  static readonly ON_NOTE_ON= "note_on";
+
+  /**
+   * @eventProperty
+   */
+  static readonly ON_NOTE_OFF= "note_off";
+
   /**
    * Retourne `true` si la note correspond à une touche noire d'une clavier de piano.
    * @param   midiNote - Code midi de la note
@@ -26,12 +49,26 @@ export class PianoKeyboard {
     return !PianoKeyboard.isBlackKey(midiNote);
   }
 
+  /**
+   * Return the vertical position of the mouse on the target element in range [0, 1]
+   * @param event
+   * @param target
+   */
+  static getMouseVerticalPositionFromTarget(event: MouseEvent, target: HTMLElement): number {
+    const rect = target.getBoundingClientRect();
+    const y = event.clientY - rect.top;
+    return y / target.offsetHeight;
+  }
+
   element: HTMLElement;
   noteStart: number;
   noteEnd: number;
   pedalThreshold = 43;
   pedalLevel = 0;
   keys: {[key: number] : HTMLElement} = {};
+
+
+  isKeyOn = false;
 
 
   /**
@@ -41,6 +78,8 @@ export class PianoKeyboard {
    * @param noteEnd
    */
   constructor(element: HTMLElement, noteStart: string|number = 'A1', noteEnd: string|number = 'C9') {
+    super();
+
     this.element        = element;
 
     if (typeof noteStart === 'string') {
@@ -63,6 +102,9 @@ export class PianoKeyboard {
   }
 
   init() {
+    this.element.addEventListener('mousedown', this.onKeyboardKeyDown);
+    document.addEventListener('mouseup', this.onKeyboardKeyUp);
+
     const keyboardBlackKeyContainer = document.createElement('div');
     keyboardBlackKeyContainer.classList.add('pianoKeyboard_blackKeys');
     keyboardBlackKeyContainer.style.left = this.leftMargin + '%';
@@ -72,18 +114,46 @@ export class PianoKeyboard {
     for (let midiNote = this.noteStart; midiNote <= this.noteEnd; midiNote++) {
       const keyboardKey = document.createElement('div');
       keyboardKey.classList.add('pianoKeyboard_key');
+      this.initKeyEventListeners(keyboardKey, midiNote);
       this.keys[midiNote] = keyboardKey;
 
       if (PianoKeyboard.isWhiteKey(midiNote)) {
         keyboardKey.classList.add('-white');
         this.element.appendChild(keyboardKey);
-        keyboardBlackKeyContainer.appendChild(document.createElement('div'));
+
+        const blackKeySpacer = document.createElement('div');
+        this.initKeyEventListeners(blackKeySpacer, midiNote);
+        keyboardBlackKeyContainer.appendChild(blackKeySpacer);
 
       } else {
         keyboardKey.classList.add('-black');
         keyboardBlackKeyContainer.appendChild(keyboardKey);
       }
     }
+  }
+
+  initKeyEventListeners(keyElement: HTMLElement, midiNote: number) {
+    keyElement.addEventListener('mousedown', event => {
+      const velocity = Math.round(PianoKeyboard.getMouseVerticalPositionFromTarget(event, keyElement) * 127);
+      this.triggerNoteOn(midiNote, velocity);
+    });
+
+    keyElement.addEventListener('mouseenter', event => {
+      if (this.isKeyOn) {
+        const velocity = Math.round(PianoKeyboard.getMouseVerticalPositionFromTarget(event, keyElement) * 127);
+        this.triggerNoteOn(midiNote, velocity);
+      }
+    });
+
+    keyElement.addEventListener('mouseup', () => {
+      this.triggerNoteOff(midiNote);
+    });
+
+    keyElement.addEventListener('mouseleave', () => {
+      if (this.isKeyOn) {
+        this.triggerNoteOff(midiNote);
+      }
+    });
   }
 
 
@@ -192,5 +262,41 @@ export class PianoKeyboard {
 
   getKeyCount(): number {
     return this.noteEnd - this.noteStart + 1;
+  }
+
+  private triggerNoteOn(note: number, velocity: number) {
+    const event: CustomEventInit<NoteOnEvent> = {
+      detail: {
+        note: note,
+        velocity: velocity
+      }
+    };
+    this.dispatchEvent(new CustomEvent(PianoKeyboard.ON_NOTE_ON, event));
+  }
+
+  private triggerNoteOff(note: number) {
+    const event: CustomEventInit<NoteOffEvent> = {
+      detail: {
+        note: note
+      }
+    }
+    this.dispatchEvent(new CustomEvent(PianoKeyboard.ON_NOTE_OFF, event));
+  }
+
+  private onKeyboardKeyDown = () => {
+    this.isKeyOn = true;
+  }
+
+  private onKeyboardKeyUp = () => {
+    this.isKeyOn = false;
+  }
+
+  releaseListeners() {
+    this.element.removeEventListener('mousedown', this.onKeyboardKeyDown);
+    document.removeEventListener('mouseup', this.onKeyboardKeyUp);
+  }
+
+  destroy() {
+    this.releaseListeners();
   }
 }

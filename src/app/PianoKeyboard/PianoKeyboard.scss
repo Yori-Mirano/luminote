@@ -1,7 +1,9 @@
 .pianoKeyboard {
-  position:   relative;
-  display:    flex;
-  transition: filter 1s;
+  position:    relative;
+  display:     flex;
+  user-select: none;
+  cursor:      pointer;
+  transition:  filter 1s;
 
   &.-disabled {
     filter: brightness(0.5);

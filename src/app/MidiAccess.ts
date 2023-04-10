@@ -1,5 +1,7 @@
 import MIDIAccess = WebMidi.MIDIAccess;
 import MIDIMessageEvent = WebMidi.MIDIMessageEvent;
+import MIDIInput = WebMidi.MIDIInput;
+import MIDIOutput = WebMidi.MIDIOutput;
 
 
 export interface NoteOnEvent {
@@ -56,6 +58,7 @@ export class MidiAccess extends EventTarget {
    */
   static readonly ON_SOFT_PEDAL= "softPedal";
 
+  output: MIDIOutput;
 
   requestMidiAccess() {
     if (navigator.requestMIDIAccess) {
@@ -85,7 +88,7 @@ export class MidiAccess extends EventTarget {
             switch (port.connection) {
 
               case 'closed':
-                this._connectInput(midiAccess);
+                this._connectPorts(midiAccess);
                 break;
 
               case 'open':
@@ -107,7 +110,7 @@ export class MidiAccess extends EventTarget {
       }
     });
 
-    this._connectInput(midiAccess);
+    this._connectPorts(midiAccess);
   };
 
 
@@ -124,21 +127,24 @@ export class MidiAccess extends EventTarget {
    *
    * @param midiAccess
    */
-  _connectInput(midiAccess: MIDIAccess) {
+  _connectPorts(midiAccess: MIDIAccess) {
     const inputs = midiAccess.inputs.values();
+    this._connectInputPort(inputs);
 
+    const outputs = midiAccess.outputs.values();
+    this._connectOutputPort(outputs);
+  }
+
+  _connectInputPort(inputs: IterableIterator<MIDIInput>) {
     for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
       input.value.onmidimessage = this._onMidiMessage;
     }
+  }
 
-    /*
-    const outputs = midiAccess.outputs.values();
-
+  _connectOutputPort(outputs: IterableIterator<MIDIOutput>) {
     for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
-      console.log(output);
-      output.value.send([0b1001 << 4, 60, 127]); // sends the message: note on, middle C, full velocity
+      this.output = output.value;
     }
-    */
   }
 
 
@@ -199,6 +205,11 @@ export class MidiAccess extends EventTarget {
     }
   };
 
+  /**
+   * Trigger a 'note on' event
+   * @param note
+   * @param velocity
+   */
   triggerNoteOn(note: number, velocity: number) {
     const event: CustomEventInit<NoteOnEvent> = {
       detail: {
@@ -209,6 +220,10 @@ export class MidiAccess extends EventTarget {
     this.dispatchEvent(new CustomEvent(MidiAccess.ON_NOTE_ON, event));
   }
 
+  /**
+   * Trigger a 'note off' event
+   * @param note
+   */
   triggerNoteOff(note: number) {
     const event: CustomEventInit<NoteOffEvent> = {
       detail: {
@@ -218,6 +233,10 @@ export class MidiAccess extends EventTarget {
     this.dispatchEvent(new CustomEvent(MidiAccess.ON_NOTE_OFF, event));
   }
 
+  /**
+   * Trigger a sustain event
+   * @param level
+   */
   triggerSustain(level: number) {
     const event: CustomEventInit<SustainEvent> = {
       detail: {
@@ -227,6 +246,10 @@ export class MidiAccess extends EventTarget {
     this.dispatchEvent(new CustomEvent(MidiAccess.ON_SUSTAIN, event));
   }
 
+  /**
+   * Trigger a soft pedal event
+   * @param level
+   */
   triggerSoftPedal(level: number) {
     const event: CustomEventInit<SoftPedalEvent> = {
       detail: {
@@ -234,5 +257,23 @@ export class MidiAccess extends EventTarget {
       }
     };
     this.dispatchEvent(new CustomEvent(MidiAccess.ON_SOFT_PEDAL, event));
+  }
+
+  /**
+   * Send midi 'note on' message
+   * @param note
+   * @param velocity
+   */
+  sendNoteOn(note: number, velocity: number) {
+    this.output.send([0x90, note, velocity]);
+  }
+
+  /**
+   * Send midi 'note off' message
+   * @param note
+   */
+  sendNoteOff(note: number) {
+    this.output.send([0x90, note, 0]); // Note on with velocity 0
+    this.output.send([0x80, note, 0]); // Note off
   }
 }

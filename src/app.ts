@@ -123,6 +123,16 @@ midiAccess.addEventListener(MidiAccess.ON_SUSTAIN, (event: CustomEvent<SustainEv
 
 midiAccess.requestMidiAccess();
 
+pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
+  midiAccess.triggerNoteOn(event.detail.note, event.detail.velocity);
+  midiAccess.sendNoteOn(event.detail.note, event.detail.velocity);
+});
+
+pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
+  midiAccess.triggerNoteOff(event.detail.note);
+  midiAccess.sendNoteOff(event.detail.note);
+});
+
 
 /*
  * Loop
