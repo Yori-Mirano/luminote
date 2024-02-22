@@ -1,19 +1,15 @@
+import { OnInit, StripBehavior } from "./abstracts/StripBehavior";
 import { Strip } from "../Strip";
-import { Note } from "../Note.interface";
 
-export class RipplesStripBehaviour {
-  strip;
-  notes;
-  stripBuffer;
+export class RipplesStripBehavior extends StripBehavior implements OnInit {
 
-  constructor(strip: Strip, notes: Note[]) {
-    this.strip = strip;
-    this.notes = notes;
-    this.stripBuffer = new Strip(strip.length, strip.getColorPerPixel());
+  stripBuffer: Strip;
+
+  onInit() {
+    this.stripBuffer = new Strip(this.strip.length, this.strip.getColorPerPixel());
   }
 
-
-  update() {
+  onTick() {
       this.stripBuffer.forEach(i => {
         const currentColor = this.strip.get(i);
         let leftColor, rightColor;
@@ -58,4 +54,5 @@ export class RipplesStripBehaviour {
         }
       });
   }
+
 }

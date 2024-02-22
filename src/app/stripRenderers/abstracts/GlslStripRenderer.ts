@@ -2,6 +2,7 @@ import { StripRenderer } from "./StripRenderer";
 import GlslCanvas from "glslCanvas";
 
 export abstract class GlslStripRenderer extends StripRenderer {
+
   glslCanvas: GlslCanvas;
 
   onInit() {
@@ -14,4 +15,5 @@ export abstract class GlslStripRenderer extends StripRenderer {
   onRender() {
     this.glslCanvas.setUniform('u_array', ...this.strip._floatRawData);
   }
+
 }

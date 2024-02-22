@@ -78,4 +78,5 @@ export class SlideUpStripRenderer extends GlslStripRenderer {
       }
     `;
   }
+
 }

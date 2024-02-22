@@ -1,16 +1,8 @@
-import { Strip } from "../Strip";
-import { Note } from "../Note.interface";
+import { StripBehavior } from "./abstracts/StripBehavior";
 
-export class SimpleStripBehaviour {
-  strip;
-  notes;
+export class SimpleStripBehavior extends StripBehavior {
 
-  constructor(strip: Strip, notes: Note[]) {
-    this.strip = strip;
-    this.notes = notes;
-  }
-
-  update() {
+  onTick() {
     this.strip.forEach(i => {
       if (this.notes[i].pressed) {
         this.strip.set(i, 0, 0, 0, this.notes[i].velocity);
@@ -26,4 +18,5 @@ export class SimpleStripBehaviour {
       }
     });
   }
+
 }

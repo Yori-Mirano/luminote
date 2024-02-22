@@ -1,6 +1,7 @@
 import { Strip } from "./Strip";
 
 export class RemoteStrip extends EventTarget {
+
   /**
    * @eventProperty
    */
@@ -112,4 +113,5 @@ export class RemoteStrip extends EventTarget {
       this.socket.send(this.strip.getIntRawData());
     }
   }
+
 }

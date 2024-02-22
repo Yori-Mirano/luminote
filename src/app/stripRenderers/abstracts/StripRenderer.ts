@@ -1,6 +1,7 @@
 import { Strip } from "../../Strip";
 
 export abstract class StripRenderer {
+
   parentElement: HTMLElement
   strip: Strip;
   factor: number;
@@ -36,4 +37,5 @@ export abstract class StripRenderer {
 
   abstract onInit(): void;
   abstract onRender(): void;
+
 }

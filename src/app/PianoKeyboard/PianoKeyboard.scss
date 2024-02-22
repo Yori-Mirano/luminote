@@ -1,11 +1,18 @@
 .pianoKeyboard {
-  --pianoKeyboard_stripColor: #953a3a;
+  --pianoKeyboard_stripColor: #9f3f55;
+
+  --pianoKeyboard_whiteKeyColor: #fff;
+  --pianoKeyboard_whiteKeyColor--on: rgb(164, 211, 238);
+  --pianoKeyboard_whiteKeyColor--pedal: rgb(231 185 102);
+
+  --pianoKeyboard_blackKeyColor: #2b2b2b;
+  --pianoKeyboard_blackKeyColor--on: rgb(62, 137, 187);
+  --pianoKeyboard_blackKeyColor--pedal: rgb(187 137 62);
 
   position:    relative;
   display:     flex;
   border-top:  .3vw solid var(--pianoKeyboard_stripColor);
   user-select: none;
-  cursor:      pointer;
   transition:  filter 1s;
 
   &.-no-strip {
@@ -17,10 +24,11 @@
   }
 
   &_blackKeys {
-    position: absolute;
-    inset:    0;
-    bottom:   33%;
-    display:  flex;
+    position:       absolute;
+    inset:          0;
+    bottom:         33%;
+    display:        flex;
+    pointer-events: none;
 
     > * {
       flex-grow: 1;
@@ -28,21 +36,23 @@
   }
 
   &_key {
-    flex-grow:  1;
-    transition: background-color 150ms;
+    flex-grow:      1;
+    cursor:         pointer;
+    pointer-events: auto;
+    transition:     background-color 150ms;
 
     &.-white {
       aspect-ratio: 1/6;
-      background:   #fff;
-      &.-pedal { background: rgb(164, 211, 238); }
-      &.-on    { background: rgb(231 185 102); }
+      background:   var(--pianoKeyboard_whiteKeyColor);
+      &.-pedal { background: var(--pianoKeyboard_whiteKeyColor--on); }
+      &.-on    { background: var(--pianoKeyboard_whiteKeyColor--pedal); }
     }
 
     &.-black {
       border-radius: 0 0 .3vw .3vw;
-      background:    #2b2b2b;
-      &.-pedal { background: rgb(62, 137, 187); }
-      &.-on    { background: rgb(187 137 62); }
+      background:    var(--pianoKeyboard_blackKeyColor);
+      &.-pedal { background: var(--pianoKeyboard_blackKeyColor--on); }
+      &.-on    { background: var(--pianoKeyboard_blackKeyColor--pedal); }
     }
   }
 }

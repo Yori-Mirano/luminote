@@ -2,218 +2,232 @@
  * Config
  */
 import './app.scss';
-import { MidiNoteTools } from "./app/MidiNoteTools";
 import { PianoKeyboard } from "./app/PianoKeyboard/PianoKeyboard";
 import { RemoteStrip } from "./app/RemoteStrip";
 import { LineStripRenderer } from "./app/stripRenderers/LineStripRenderer";
 import { SlideUpStripRenderer } from "./app/stripRenderers/SlideUpStripRenderer";
 import { MidiAccess, NoteOffEvent, NoteOnEvent, PortEvent, SustainEvent } from "./app/MidiAccess";
-import { SimpleStripBehaviour } from "./app/stripBehaviours/SimpleStripBehaviour";
-import { RipplesStripBehaviour } from "./app/stripBehaviours/RipplesStripBehaviour";
-import { AssistantStripBehaviour } from "./app/stripBehaviours/AssistantStripBehaviour";
 import { Strip } from "./app/Strip";
-import { Note } from "./app/Note.interface";
+import { Note } from "./app/Note.model";
 import { AutoHiddenLayer } from "./app/AutoHiddenLayer/AutoHiddenLayer";
+import { StripBehavior } from "./app/stripBehaviors/abstracts/StripBehavior";
+import { AppConfig } from "./AppConfig.model";
+import { appConfig } from "./app.config";
+import { StripRenderer } from "./app/stripRenderers/abstracts/StripRenderer";
 
 
-const config = {
-  remoteStrip: {
-    host: localStorage.remoteStripHost || '',
-    startNote: MidiNoteTools.getMidiNote('A1'),
-  },
 
-  pianoKeyboard: {
-    noteRange: {
-      start:  MidiNoteTools.getMidiNote('A1'),
-      end:    MidiNoteTools.getMidiNote('C9')
+class App {
+
+  strip: Strip;
+  stripBehavior: StripBehavior;
+
+  remoteStripConnexion: RemoteStrip;
+  remoteStrip: Strip;
+  remoteStripOffset: number;
+  syncRemoteStrip: () => void;
+
+  lineStripRenderer: StripRenderer;
+  slideUpStripRenderer: StripRenderer;
+
+  notes: Note[] = [];
+  pianoKeyboard: PianoKeyboard;
+  frameInterval: number;
+
+  constructor(public config: AppConfig) {}
+
+  start() {
+    this.onStart();
+  }
+
+  onStart() {
+    this.remoteStripOffset = this.config.remoteStrip.startNote - this.config.pianoKeyboard.noteRange.start;
+    this.frameInterval = 1000 / this.config.framePerSecond;
+
+    this.initOverlay();
+    this.initForms();
+
+    this.initStrip()
+    this.initNoteState();
+    this.initPianoKeyboard();
+    this.initStripBehavior();
+    this.connectToRemoteStrip();
+
+    this.initStripElement();
+    this.initViewportElement();
+
+    this.initMidiAccess();
+
+    this.startMainLoop();
+  }
+
+  onTick() {
+    this.stripBehavior.tick()
+
+    if (this.remoteStrip && this.syncRemoteStrip) {
+      this.strip.copyTo(this.remoteStrip, this.remoteStripOffset);
+      this.syncRemoteStrip();
     }
-  },
-}
 
-function main() {
-
-}
-
-const remoteStripOffset = config.remoteStrip.startNote - config.pianoKeyboard.noteRange.start;
-
-
-/*
- * Remote strip
- */
-let remoteStripConnexion: RemoteStrip;
-let remoteStrip: Strip;
-let syncRemoteStrip:() => void;
-
-function initRemoteStrip() {
-  remoteStripConnexion = new RemoteStrip(config.remoteStrip.host, (_strip: Strip, _syncRemoteStrip: () => void) => {
-    remoteStrip     = _strip;
-    syncRemoteStrip = _syncRemoteStrip;
-  });
-
-  remoteStripConnexion.addEventListener(RemoteStrip.ON_CONNECTED, () => {
-    remoteStripForm_connexionIndicator.classList.add('stream-online-indicator--online');
-  });
-
-  remoteStripConnexion.addEventListener(RemoteStrip.ON_DISCONNECTED, () => {
-    remoteStripForm_connexionIndicator.classList.remove('stream-online-indicator--online');
-  });
-}
-
-if (config.remoteStrip.host) {
-  initRemoteStrip();
-}
-
-
-/*
- * Overlay
- */
-const overlay = document.getElementById('overlay');
-new AutoHiddenLayer(overlay);
-
-
-/*
- * Remote Strip form
- */
-const remoteStripFormElement = document.getElementById('remoteStripForm');
-const remoteStripHostInput = <HTMLInputElement>document.getElementById('remoteStripForm_host');
-const remoteStripForm_connexionIndicator = document.getElementById('remoteStripForm_connexionIndicator');
-remoteStripHostInput.value = config.remoteStrip.host;
-
-remoteStripFormElement.addEventListener('submit', event => {
-  event.preventDefault();
-
-  config.remoteStrip.host = remoteStripHostInput.value;
-  localStorage.remoteStripHost = config.remoteStrip.host;
-
-  if (config.remoteStrip.host) {
-    remoteStripConnexion.disconnect();
-    initRemoteStrip();
+    this.lineStripRenderer.render();
+    this.slideUpStripRenderer.render();
   }
 
-  return false;
-});
 
-
-/*
- * Piano Keyboard
- */
-const pianoKeyboard = new PianoKeyboard(
-  document.getElementById('pianoKeyboard'),
-  config.pianoKeyboard.noteRange.start,
-  config.pianoKeyboard.noteRange.end
-);
-
-
-/*
- * Strip
- */
-const strip = new Strip(config.pianoKeyboard.noteRange.end - config.pianoKeyboard.noteRange.start + 1);
-
-
-/*
- * StripRenderer
- */
-const stripElement = document.getElementById('strip');
-stripElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
-stripElement.style.marginRight = pianoKeyboard.rightMargin + '%';
-const lineStripRenderer = new LineStripRenderer(stripElement, strip, 8);
-
-const viewportElement = document.getElementById('viewport');
-viewportElement.style.marginLeft = pianoKeyboard.leftMargin + '%';
-viewportElement.style.marginRight = pianoKeyboard.rightMargin + '%';
-const slideUpStripRenderer = new SlideUpStripRenderer(viewportElement, strip, 4);
-
-
-/*
- * Notes
- */
-const notes: Note[] = [];
-strip.forEach(i => {
-  notes[i] = {
-    pressed: false,
-    pedal: false,
-    velocity: 0,
-  }
-});
-
-
-/*
- * Midi Access
- */
-const midiPorts = document.getElementById('midiPorts');
-const midiAccess = new MidiAccess();
-
-midiAccess.addEventListener(MidiAccess.ON_PORT_CONNECTED, (event: CustomEvent<PortEvent>) => {
-  pianoKeyboard.enable();
-
-  const portItem = document.createElement('li');
-  portItem.innerText = `[${event.detail.port.type}] ${event.detail.port.name}`;
-  midiPorts.appendChild(portItem);
-});
-
-midiAccess.addEventListener(MidiAccess.ON_PORT_DISCONNECTED, (event: CustomEvent<PortEvent>) => {
-  pianoKeyboard.disable();
-});
-
-midiAccess.addEventListener(MidiAccess.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
-  pianoKeyboard.pressKey(event.detail.note);
-  notes[event.detail.note - config.pianoKeyboard.noteRange.start].pressed   = true;
-  notes[event.detail.note - config.pianoKeyboard.noteRange.start].pedal     = pianoKeyboard.isPedalDown();
-  notes[event.detail.note - config.pianoKeyboard.noteRange.start].velocity  = event.detail.velocity / 128;
-})
-
-midiAccess.addEventListener(MidiAccess.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
-  pianoKeyboard.releaseKey(event.detail.note);
-  notes[event.detail.note - config.pianoKeyboard.noteRange.start].pressed = false;
-});
-
-midiAccess.addEventListener(MidiAccess.ON_SUSTAIN, (event: CustomEvent<SustainEvent>) => {
-  pianoKeyboard.setPedal(event.detail.level);
-
-  if (pianoKeyboard.isPedalDown()) {
-    notes.forEach(note => note.pedal = !!(note.pressed || note.pedal));
-  } else {
-    notes.forEach(note => note.pedal = false);
-  }
-});
-
-midiAccess.requestMidiAccess();
-
-pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
-  midiAccess.triggerNoteOn(event.detail.note, event.detail.velocity);
-  midiAccess.sendNoteOn(event.detail.note, event.detail.velocity);
-});
-
-pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
-  midiAccess.triggerNoteOff(event.detail.note);
-  midiAccess.sendNoteOff(event.detail.note);
-});
-
-
-/*
- * Loop
- */
-const framePerSecond = 60;
-const frameInterval = 1000 / framePerSecond;
-
-//const simpleStripBehaviour = new SimpleStripBehaviour(strip, notes);
-const ripplesStripBehaviour = new RipplesStripBehaviour(strip, notes);
-//const assistantStripBehaviour = new AssistantStripBehaviour(strip, notes);
-
-function loop() {
-  ripplesStripBehaviour.update()
-
-  if (remoteStrip && syncRemoteStrip) {
-    strip.copyTo(remoteStrip, remoteStripOffset);
-    syncRemoteStrip();
+  initStrip() {
+    this.strip = new Strip(this.config.pianoKeyboard.noteRange.end - this.config.pianoKeyboard.noteRange.start + 1);
   }
 
-  lineStripRenderer.render();
-  slideUpStripRenderer.render();
+  connectToRemoteStrip() {
+    if (this.config.remoteStrip.host) {
+      this.remoteStripConnexion = new RemoteStrip(this.config.remoteStrip.host, (strip, syncRemoteStrip) => {
+        this.remoteStrip = strip;
+        this.syncRemoteStrip = syncRemoteStrip;
+      });
 
-  setTimeout(loop, frameInterval);
+      this.initRemoteStripEventListener()
+    }
+  }
+
+  initRemoteStripEventListener() {
+    const connexionIndicatorElement = document.getElementById(this.config.domMapping.forms.remoteStrip.connexionIndicatorElementId);
+
+    this.remoteStripConnexion.addEventListener(RemoteStrip.ON_CONNECTED, () => {
+      connexionIndicatorElement.classList.add('stream-online-indicator--online');
+    });
+
+    this.remoteStripConnexion.addEventListener(RemoteStrip.ON_DISCONNECTED, () => {
+      connexionIndicatorElement.classList.remove('stream-online-indicator--online');
+    });
+  }
+
+  initOverlay() {
+    // TODO: refactor en web component autonome
+    const overlay = document.getElementById('overlay');
+    new AutoHiddenLayer(overlay);
+  }
+
+  initForms() {
+    this.initRemoteStripForm();
+  }
+
+  initRemoteStripForm() {
+    const formElement = <HTMLFormElement>document.getElementById(this.config.domMapping.forms.remoteStrip.formElementId);
+    const inputElement = <HTMLInputElement>document.getElementById(this.config.domMapping.forms.remoteStrip.hostInputElementId);
+
+    inputElement.value = this.config.remoteStrip.host;
+
+    formElement.addEventListener('submit', event => {
+      event.preventDefault();
+
+      this.config.remoteStrip.host = inputElement.value;
+      localStorage.remoteStripHost = this.config.remoteStrip.host;
+
+      if (this.config.remoteStrip.host) {
+        this.remoteStripConnexion.disconnect();
+        this.connectToRemoteStrip();
+      }
+
+      return false;
+    });
+  }
+
+  initNoteState() {
+    this.strip.forEach(i => {
+      this.notes[i] = {
+        pressed: false,
+        pedal: false,
+        velocity: 0,
+      }
+    });
+  }
+
+  initStripBehavior() {
+    this.stripBehavior = new this.config.stripBehavior.current(this.strip, this.notes);
+  }
+
+  initStripElement() {
+    const stripElement = document.getElementById(this.config.domMapping.stripElementId);
+    stripElement.style.marginLeft = this.pianoKeyboard.leftMargin + '%';
+    stripElement.style.marginRight = this.pianoKeyboard.rightMargin + '%';
+    this.lineStripRenderer = new LineStripRenderer(stripElement, this.strip, 8);
+  }
+
+  initViewportElement() {
+    const viewportElement = document.getElementById(this.config.domMapping.viewportElementId);
+    viewportElement.style.marginLeft = this.pianoKeyboard.leftMargin + '%';
+    viewportElement.style.marginRight = this.pianoKeyboard.rightMargin + '%';
+    this.slideUpStripRenderer = new SlideUpStripRenderer(viewportElement, this.strip, 4);
+  }
+
+  initPianoKeyboard() {
+    this.pianoKeyboard = new PianoKeyboard(
+      document.getElementById('pianoKeyboard'),
+      this.config.pianoKeyboard.noteRange.start,
+      this.config.pianoKeyboard.noteRange.end
+    );
+  }
+
+  initMidiAccess() {
+    const midiPorts = document.getElementById(this.config.domMapping.midiPortsElementId);
+    const midiAccess = new MidiAccess();
+
+    midiAccess.addEventListener(MidiAccess.ON_PORT_CONNECTED, (event: CustomEvent<PortEvent>) => {
+      this.pianoKeyboard.enable();
+
+      const portItem = document.createElement('li');
+      portItem.innerText = `[${event.detail.port.type}] ${event.detail.port.name}`;
+      midiPorts.appendChild(portItem);
+    });
+
+    midiAccess.addEventListener(MidiAccess.ON_PORT_DISCONNECTED, (event: CustomEvent<PortEvent>) => {
+      this.pianoKeyboard.disable();
+    });
+
+    midiAccess.addEventListener(MidiAccess.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
+      this.pianoKeyboard.pressKey(event.detail.note);
+      this.notes[event.detail.note - this.config.pianoKeyboard.noteRange.start].pressed   = true;
+      this.notes[event.detail.note - this.config.pianoKeyboard.noteRange.start].pedal     = this.pianoKeyboard.isPedalDown();
+      this.notes[event.detail.note - this.config.pianoKeyboard.noteRange.start].velocity  = event.detail.velocity / 128;
+    })
+
+    midiAccess.addEventListener(MidiAccess.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
+      this.pianoKeyboard.releaseKey(event.detail.note);
+      this.notes[event.detail.note - this.config.pianoKeyboard.noteRange.start].pressed = false;
+    });
+
+    midiAccess.addEventListener(MidiAccess.ON_SUSTAIN, (event: CustomEvent<SustainEvent>) => {
+      this.pianoKeyboard.setPedal(event.detail.level);
+
+      if (this.pianoKeyboard.isPedalDown()) {
+        this.notes.forEach(note => note.pedal = !!(note.pressed || note.pedal));
+      } else {
+        this.notes.forEach(note => note.pedal = false);
+      }
+    });
+
+    midiAccess.requestMidiAccess();
+
+    this.pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
+      midiAccess.triggerNoteOn(event.detail.note, event.detail.velocity);
+      midiAccess.sendNoteOn(event.detail.note, event.detail.velocity);
+    });
+
+    this.pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
+      midiAccess.triggerNoteOff(event.detail.note);
+      midiAccess.sendNoteOff(event.detail.note);
+    });
+  }
+
+  startMainLoop() {
+    this.onTick();
+
+    setTimeout(() => this.startMainLoop(), this.frameInterval);
+  }
+
 }
 
-loop();
 
-main();
+
+const app = new App(appConfig);
+app.start();

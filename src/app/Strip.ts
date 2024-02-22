@@ -6,6 +6,7 @@ export interface Color {
 }
 
 export class Strip {
+
   _stripLength;
   _colorPerPixel;
   _floatRawData;
@@ -114,4 +115,5 @@ export class Strip {
       }
     }
   }
+
 }

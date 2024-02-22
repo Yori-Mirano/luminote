@@ -33,6 +33,7 @@ export interface SoftPedalEvent {
 }
 
 export class MidiAccess extends EventTarget {
+
   /**
    * @eventProperty
    */
@@ -288,4 +289,5 @@ export class MidiAccess extends EventTarget {
       this.output.send([0x80, note, 0]); // Note off
     }
   }
+
 }

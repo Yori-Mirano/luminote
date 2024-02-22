@@ -17,7 +17,8 @@ export interface NoteOffEvent {
 /**
  * @external MidiNoteTools
  */
-export class PianoKeyboard extends EventTarget{
+export class PianoKeyboard extends EventTarget {
+
   /**
    * @eventProperty
    */
@@ -299,4 +300,5 @@ export class PianoKeyboard extends EventTarget{
   destroy() {
     this.releaseListeners();
   }
+
 }

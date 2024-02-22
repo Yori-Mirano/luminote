@@ -1,6 +1,7 @@
 import { CanvasStripRenderer } from "./abstracts/CanvasStripRenderer";
 
 export class LineStripRenderer extends CanvasStripRenderer {
+
   onRender() {
     const pixelWidth = this.canvas.width / this.strip.length;
     const pixelheight = this.canvas.height;
@@ -16,4 +17,5 @@ export class LineStripRenderer extends CanvasStripRenderer {
       this.context.fillRect(pixelWidth * i, this.canvas.height - pixelheight, pixelWidth, pixelheight);
     });
   }
+
 }
