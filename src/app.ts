@@ -7,17 +7,18 @@ import { PianoKeyboard } from "./app/PianoKeyboard/PianoKeyboard";
 import { RemoteStrip } from "./app/RemoteStrip";
 import { LineStripRenderer } from "./app/stripRenderers/LineStripRenderer";
 import { SlideUpStripRenderer } from "./app/stripRenderers/SlideUpStripRenderer";
-import { MidiAccess, NoteOffEvent, NoteOnEvent, SustainEvent } from "./app/MidiAccess";
+import { MidiAccess, NoteOffEvent, NoteOnEvent, PortEvent, SustainEvent } from "./app/MidiAccess";
 import { SimpleStripBehaviour } from "./app/stripBehaviours/SimpleStripBehaviour";
 import { RipplesStripBehaviour } from "./app/stripBehaviours/RipplesStripBehaviour";
 import { AssistantStripBehaviour } from "./app/stripBehaviours/AssistantStripBehaviour";
 import { Strip } from "./app/Strip";
 import { Note } from "./app/Note.interface";
+import { AutoHiddenLayer } from "./app/AutoHiddenLayer/AutoHiddenLayer";
+
 
 const config = {
   remoteStrip: {
-    //host: localStorage.remoteStripHost = prompt('host ip', localStorage.remoteStripHost || '192.168.xx.xx'), // TODO: create a user friendly interface
-    host: '192.168.1.43', // TODO: remove this dev shortcut
+    host: localStorage.remoteStripHost || '',
     startNote: MidiNoteTools.getMidiNote('A1'),
   },
 
@@ -29,7 +30,68 @@ const config = {
   },
 }
 
+function main() {
+
+}
+
 const remoteStripOffset = config.remoteStrip.startNote - config.pianoKeyboard.noteRange.start;
+
+
+/*
+ * Remote strip
+ */
+let remoteStripConnexion: RemoteStrip;
+let remoteStrip: Strip;
+let syncRemoteStrip:() => void;
+
+function initRemoteStrip() {
+  remoteStripConnexion = new RemoteStrip(config.remoteStrip.host, (_strip: Strip, _syncRemoteStrip: () => void) => {
+    remoteStrip     = _strip;
+    syncRemoteStrip = _syncRemoteStrip;
+  });
+
+  remoteStripConnexion.addEventListener(RemoteStrip.ON_CONNECTED, () => {
+    remoteStripForm_connexionIndicator.classList.add('stream-online-indicator--online');
+  });
+
+  remoteStripConnexion.addEventListener(RemoteStrip.ON_DISCONNECTED, () => {
+    remoteStripForm_connexionIndicator.classList.remove('stream-online-indicator--online');
+  });
+}
+
+if (config.remoteStrip.host) {
+  initRemoteStrip();
+}
+
+
+/*
+ * Overlay
+ */
+const overlay = document.getElementById('overlay');
+new AutoHiddenLayer(overlay);
+
+
+/*
+ * Remote Strip form
+ */
+const remoteStripFormElement = document.getElementById('remoteStripForm');
+const remoteStripHostInput = <HTMLInputElement>document.getElementById('remoteStripForm_host');
+const remoteStripForm_connexionIndicator = document.getElementById('remoteStripForm_connexionIndicator');
+remoteStripHostInput.value = config.remoteStrip.host;
+
+remoteStripFormElement.addEventListener('submit', event => {
+  event.preventDefault();
+
+  config.remoteStrip.host = remoteStripHostInput.value;
+  localStorage.remoteStripHost = config.remoteStrip.host;
+
+  if (config.remoteStrip.host) {
+    remoteStripConnexion.disconnect();
+    initRemoteStrip();
+  }
+
+  return false;
+});
 
 
 /*
@@ -46,18 +108,6 @@ const pianoKeyboard = new PianoKeyboard(
  * Strip
  */
 const strip = new Strip(config.pianoKeyboard.noteRange.end - config.pianoKeyboard.noteRange.start + 1);
-
-
-/*
- * Remote strip
- */
-let remoteStrip: Strip;
-let syncRemoteStrip:() => void;
-
-new RemoteStrip(config.remoteStrip.host, (_strip: Strip, _syncRemoteStrip: () => void) => {
-  remoteStrip     = _strip;
-  syncRemoteStrip = _syncRemoteStrip;
-});
 
 
 /*
@@ -90,13 +140,18 @@ strip.forEach(i => {
 /*
  * Midi Access
  */
+const midiPorts = document.getElementById('midiPorts');
 const midiAccess = new MidiAccess();
 
-midiAccess.addEventListener(MidiAccess.ON_INPUT_CONNECTED, () => {
+midiAccess.addEventListener(MidiAccess.ON_PORT_CONNECTED, (event: CustomEvent<PortEvent>) => {
   pianoKeyboard.enable();
+
+  const portItem = document.createElement('li');
+  portItem.innerText = `[${event.detail.port.type}] ${event.detail.port.name}`;
+  midiPorts.appendChild(portItem);
 });
 
-midiAccess.addEventListener(MidiAccess.ON_INPUT_DISCONNECTED, () => {
+midiAccess.addEventListener(MidiAccess.ON_PORT_DISCONNECTED, (event: CustomEvent<PortEvent>) => {
   pianoKeyboard.disable();
 });
 
@@ -160,3 +215,5 @@ function loop() {
 }
 
 loop();
+
+main();

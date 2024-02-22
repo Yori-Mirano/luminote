@@ -1,3 +1,9 @@
+:root {
+  --primary-color: #4f46cc;
+  --primary-color--lighter: #685fe3;
+  --primary-color--darker: #3c3699;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -7,6 +13,50 @@ body {
   font-size:   1vw;
   background:  #000;
   color:       #fff;
+}
+
+a {
+  color: var(--primary-color--lighter);
+}
+
+/*
+ * FORMS
+ */
+.input,
+.button {
+  display:  inline-block;
+  padding:  0.75vw 1vw;
+  width:    max-content;
+  border:   none;
+  border-radius: 0.25vw;
+
+  font-size: 1vw;
+  text-decoration: none;
+  outline: none;
+}
+
+.input {
+  background-color: #fff;
+  color: #444;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  box-shadow:0 0 0 10vw white inset;
+}
+
+.button {
+  background-color: var(--primary-color);
+  color: #fff;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+}
+
+.button:focus,
+.button:hover {
+  background-color: var(--primary-color--lighter);
 }
 
 
@@ -35,4 +85,54 @@ body {
 
 #pianoKeyboard {
   flex-shrink: 0;
+}
+
+#overlay {
+  position: absolute;
+  top: 1vw;
+  left: 1vw;
+  padding: 1vw;
+  min-width: 24vw;
+  background-color: #4458;
+  border-radius: 1vw;
+  z-index: 1000;
+  backdrop-filter: blur(1vw);
+}
+
+
+
+/*
+ * CHANNEL FORM
+ */
+#remoteStripForm {
+  position: relative;
+  display: flex;
+  align-content: center;
+}
+
+#remoteStripForm > .input {
+  flex-grow: 1;
+  padding-left: 3vw;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#remoteStripForm > .button {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+
+#remoteStripForm_connexionIndicator {
+  position: absolute;
+  align-self: center;
+  left: 1vw;
+  width: 1vw;
+  height: 1vw;
+  background-color: #aaa;
+  border-radius: 1vw;
+}
+
+#remoteStripForm_connexionIndicator.stream-online-indicator--online {
+  background-color: #ff3939;
 }

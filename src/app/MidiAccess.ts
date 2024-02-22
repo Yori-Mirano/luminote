@@ -2,7 +2,12 @@ import MIDIAccess = WebMidi.MIDIAccess;
 import MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 import MIDIInput = WebMidi.MIDIInput;
 import MIDIOutput = WebMidi.MIDIOutput;
+import MIDIPort = WebMidi.MIDIPort;
 
+
+export interface PortEvent {
+  port: MIDIPort;
+}
 
 export interface NoteOnEvent {
   /** Midi note id from 0 to 127 */
@@ -31,12 +36,12 @@ export class MidiAccess extends EventTarget {
   /**
    * @eventProperty
    */
-  static readonly ON_INPUT_CONNECTED= "input_connected";
+  static readonly ON_PORT_CONNECTED= "port_connected";
 
   /**
    * @eventProperty
    */
-  static readonly ON_INPUT_DISCONNECTED= "input_disconnected";
+  static readonly ON_PORT_DISCONNECTED= "port_disconnected";
 
   /**
    * @eventProperty
@@ -81,36 +86,48 @@ export class MidiAccess extends EventTarget {
     midiAccess.addEventListener("statechange", event => {
       const port = event.port;
 
-      if(port.type === 'input') {
-        switch (port.state) {
+      switch (port.state) {
+        case 'connected':
+          switch (port.connection) {
 
-          case 'connected':
-            switch (port.connection) {
+            case 'closed':
+              if (port.type === 'input') {
+                this._connectInputPort(midiAccess);
+              } else if (port.type === 'output') {
+                this._connectOutputPort(midiAccess);
+              }
+              break;
 
-              case 'closed':
-                this._connectPorts(midiAccess);
-                break;
+            case 'open':
+              console.log(`MidiAccess -> Device: ${port.type} port connected`);
+              const event: CustomEventInit<PortEvent> = {
+                detail: {
+                  port: port
+                }
+              };
+              this.dispatchEvent(new CustomEvent(MidiAccess.ON_PORT_CONNECTED, event));
+              break;
 
-              case 'open':
-                console.log('MidiAccess -> Device: Input connected');
-                this.dispatchEvent(new Event(MidiAccess.ON_INPUT_CONNECTED));
-                break;
+            default:
+          }
+          break;
 
-              default:
+        case 'disconnected':
+          console.log(`MidiAccess -> Device: ${port.type} port disconnected`);
+          const event: CustomEventInit<PortEvent> = {
+            detail: {
+              port: port
             }
-            break;
+          };
+          this.dispatchEvent(new CustomEvent(MidiAccess.ON_PORT_DISCONNECTED, event));
+          break;
 
-          case 'disconnected':
-            console.log('MidiAccess -> Device: Input disconnected');
-            this.dispatchEvent(new Event(MidiAccess.ON_INPUT_DISCONNECTED));
-            break;
-
-          default:
-        }
+        default:
       }
     });
 
-    this._connectPorts(midiAccess);
+    this._connectInputPort(midiAccess);
+    this._connectOutputPort(midiAccess);
   };
 
 
@@ -122,26 +139,17 @@ export class MidiAccess extends EventTarget {
     console.log("MidiAccess: No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + error);
   };
 
-
-  /**
-   *
-   * @param midiAccess
-   */
-  _connectPorts(midiAccess: MIDIAccess) {
+  _connectInputPort(midiAccess: MIDIAccess) {
     const inputs = midiAccess.inputs.values();
-    this._connectInputPort(inputs);
 
-    const outputs = midiAccess.outputs.values();
-    this._connectOutputPort(outputs);
-  }
-
-  _connectInputPort(inputs: IterableIterator<MIDIInput>) {
     for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
       input.value.onmidimessage = this._onMidiMessage;
     }
   }
 
-  _connectOutputPort(outputs: IterableIterator<MIDIOutput>) {
+  _connectOutputPort(midiAccess: MIDIAccess) {
+    const outputs = midiAccess.outputs.values();
+
     for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
       this.output = output.value;
     }
@@ -265,7 +273,9 @@ export class MidiAccess extends EventTarget {
    * @param velocity
    */
   sendNoteOn(note: number, velocity: number) {
-    this.output.send([0x90, note, velocity]);
+    if (this.output) {
+      this.output.send([0x90, note, velocity]);
+    }
   }
 
   /**
@@ -273,7 +283,9 @@ export class MidiAccess extends EventTarget {
    * @param note
    */
   sendNoteOff(note: number) {
-    this.output.send([0x90, note, 0]); // Note on with velocity 0
-    this.output.send([0x80, note, 0]); // Note off
+    if (this.output) {
+      this.output.send([0x90, note, 0]); // Note on with velocity 0
+      this.output.send([0x80, note, 0]); // Note off
+    }
   }
 }

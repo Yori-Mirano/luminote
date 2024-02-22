@@ -1,6 +1,16 @@
 import { Strip } from "./Strip";
 
-export class RemoteStrip {
+export class RemoteStrip extends EventTarget {
+  /**
+   * @eventProperty
+   */
+  static readonly ON_CONNECTED = 'connected';
+
+  /**
+   * @eventProperty
+   */
+  static readonly ON_DISCONNECTED = 'disconnected';
+
   host: string;
   socket: WebSocket;
   strip: Strip;
@@ -10,21 +20,25 @@ export class RemoteStrip {
   _modeEcoTimeInterval: ReturnType<typeof setInterval>;
   _isEcoMode = false;
   _isClosed = true;
+  _isDisconnectionRequested = false;
   onConnected: (strip: Strip, syncRemoteStrip: () => void) => void
 
   constructor(host: string, callback: (strip: Strip, syncRemoteStrip: () => void) => void) {
+    super();
     this.host = host;
     this.onConnected = callback;
     this.connect();
   }
 
   connect() {
+    this._isDisconnectionRequested = false;
     this.socket = new WebSocket(`ws://${this.host}`);
 
     // onopen
     this.socket.onopen = () => {
       console.log('RemoteStrip -> Websocket: Connection established');
       console.time('RemoteStrip -> Websocket: connected');
+      this.dispatchEvent(new Event(RemoteStrip.ON_CONNECTED));
       this._isClosed = false;
     };
     
@@ -57,8 +71,12 @@ export class RemoteStrip {
       console.log('RemoteStrip -> Websocket: Connection closed');
       console.timeEnd('RemoteStrip -> Websocket: connected');
       clearInterval(this._modeEcoTimeInterval);
+      this.dispatchEvent(new Event(RemoteStrip.ON_DISCONNECTED));
       this._isClosed = true;
-      this.connect();
+
+      if (!this._isDisconnectionRequested) {
+        this.connect();
+      }
     };
 
 
@@ -67,6 +85,13 @@ export class RemoteStrip {
       console.error('RemoteStrip -> Websocket: Socket encountered error: ', err.message, ' Closing socket');
       this.socket.close();
     };
+  }
+
+  disconnect() {
+    if (this.socket) {
+      this._isDisconnectionRequested = true;
+      this.socket.close();
+    }
   }
 
 
