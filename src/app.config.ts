@@ -1,4 +1,4 @@
-import { AppConfig } from "./AppConfig.model";
+import { AppConfig } from "./app/AppConfig.model";
 import { SimpleStripBehavior } from "./app/stripBehaviors/SimpleStripBehavior";
 import { RipplesStripBehavior } from "./app/stripBehaviors/RipplesStripBehavior";
 import { AssistantStripBehavior } from "./app/stripBehaviors/AssistantStripBehavior";
@@ -41,5 +41,6 @@ export const appConfig: AppConfig = {
     stripElementId: 'strip',
     viewportElementId: 'viewport',
     midiPortsElementId: 'midiPorts',
+    stripBehaviorSelectElementId: 'stripBehaviorSelect',
   },
 }

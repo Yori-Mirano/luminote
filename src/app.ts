@@ -11,7 +11,7 @@ import { Strip } from "./app/Strip";
 import { Note } from "./app/Note.model";
 import { AutoHiddenLayer } from "./app/AutoHiddenLayer/AutoHiddenLayer";
 import { StripBehavior } from "./app/stripBehaviors/abstracts/StripBehavior";
-import { AppConfig } from "./AppConfig.model";
+import { AppConfig } from "./app/AppConfig.model";
 import { appConfig } from "./app.config";
 import { StripRenderer } from "./app/stripRenderers/abstracts/StripRenderer";
 
@@ -55,6 +55,7 @@ class App {
 
     this.initStripElement();
     this.initViewportElement();
+    this.initStripBehaviorSelectElement();
 
     this.initMidiAccess();
 
@@ -225,6 +226,28 @@ class App {
     setTimeout(() => this.startMainLoop(), this.frameInterval);
   }
 
+  private initStripBehaviorSelectElement() {
+    const selectElement = document.getElementById(this.config.domMapping.stripBehaviorSelectElementId);
+
+    Object.entries(this.config.stripBehavior.list).forEach(([key, value]) => {
+      const optionElement = document.createElement('option');
+
+      optionElement.value = key;
+      optionElement.innerText = key;
+
+      if (value === this.config.stripBehavior.current) {
+        optionElement.selected = true;
+      }
+
+      selectElement.appendChild(optionElement);
+    });
+
+    selectElement.addEventListener('change', (event) => {
+      const selectedBehavior = (event.target as HTMLSelectElement).value;
+      this.config.stripBehavior.current = this.config.stripBehavior.list[selectedBehavior];
+      this.initStripBehavior();
+    });
+  }
 }
 
 

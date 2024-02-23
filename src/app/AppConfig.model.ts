@@ -1,6 +1,6 @@
-import { Strip } from "./app/Strip";
-import { Note } from "./app/Note.model";
-import { StripBehavior } from "./app/stripBehaviors/abstracts/StripBehavior";
+import { Strip } from "./Strip";
+import { Note } from "./Note.model";
+import { StripBehavior } from "./stripBehaviors/abstracts/StripBehavior";
 
 export interface AppConfig {
   remoteStrip: RemoteStripConfig;
@@ -52,4 +52,5 @@ export interface DomMappingConfig {
   stripElementId: string,
   viewportElementId: string,
   midiPortsElementId: string,
+  stripBehaviorSelectElementId: string,
 }
