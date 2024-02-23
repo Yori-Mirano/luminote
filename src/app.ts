@@ -1,23 +1,26 @@
-/*
- * Config
- */
 import './app.scss';
-import { PianoKeyboard } from "./app/PianoKeyboard/PianoKeyboard";
-import { RemoteStrip } from "./app/RemoteStrip";
-import { LineStripRenderer } from "./app/stripRenderers/LineStripRenderer";
-import { SlideUpStripRenderer } from "./app/stripRenderers/SlideUpStripRenderer";
-import { MidiAccess, NoteOffEvent, NoteOnEvent, PortEvent, SustainEvent } from "./app/MidiAccess";
-import { Strip } from "./app/Strip";
-import { Note } from "./app/Note.model";
-import { AutoHiddenLayer } from "./app/AutoHiddenLayer/AutoHiddenLayer";
-import { StripBehavior } from "./app/stripBehaviors/abstracts/StripBehavior";
-import { AppConfig } from "./app/AppConfig.model";
+import "./app/shared/custom-elements";
+import { PianoKeyboardElement } from "./app/shared/custom-elements/piano-keyboard/piano-keyboard.element";
+import { RemoteStrip } from "./app/shared/strip/remote-strip";
+import { MidiAccess, NoteOffEvent, NoteOnEvent, PortEvent, SustainEvent } from "./app/shared/midi/midi-access";
+import { Strip } from "./app/shared/strip/strip";
+import { Note } from "./app/shared/strip/note.model";
+import { StripBehavior } from "./app/shared/strip/stripBehaviors/abstracts/strip-behavior";
+import { AppConfig } from "./app/core/app-config.model";
 import { appConfig } from "./app.config";
-import { StripRenderer } from "./app/stripRenderers/abstracts/StripRenderer";
+import { StripRendererElement } from "./app/shared/custom-elements/stripRenderers/abstracts/strip-renderer.element";
+import { CustomElement } from "./app/shared/custom-elements/custom-element";
+import { ElementRef } from "./app/shared/template-helpers/element-ref";
+import { callback } from "./app/shared/template-helpers/callback.function";
+import { forEach } from "./app/shared/template-helpers/forEach.function";
 
 
+class AppElement extends HTMLElement implements CustomElement {
 
-class App {
+  config: AppConfig;
+
+  framePerSecond = 60;
+  frameInterval = 1000 / this.framePerSecond;
 
   strip: Strip;
   stripBehavior: StripBehavior;
@@ -27,36 +30,153 @@ class App {
   remoteStripOffset: number;
   syncRemoteStrip: () => void;
 
-  lineStripRenderer: StripRenderer;
-  slideUpStripRenderer: StripRenderer;
-
   notes: Note[] = [];
-  pianoKeyboard: PianoKeyboard;
-  frameInterval: number;
 
-  constructor(public config: AppConfig) {}
-
-  start() {
-    this.onStart();
+  elementRefs = {
+    lineStripRenderer: new ElementRef<StripRendererElement>(),
+    viewportStripRenderer: new ElementRef<StripRendererElement>(),
+    pianoKeyboard: new ElementRef<PianoKeyboardElement>(),
+    remoteStripHostInput: new ElementRef<HTMLInputElement>(),
+    remoteStripConnexionIndicator: new ElementRef(),
+    midiPortsList: new ElementRef(),
   }
 
-  onStart() {
-    this.remoteStripOffset = this.config.remoteStrip.startNote - this.config.pianoKeyboard.noteRange.start;
-    this.frameInterval = 1000 / this.config.framePerSecond;
+  viewportRendererElement: StripRendererElement;
 
-    this.initOverlay();
-    this.initForms();
 
+  connectedCallback() {
+    this.config = appConfig;
+    this.viewInit();
+    this.init();
+  }
+
+  viewInit() {
+    this.innerHTML = `
+      <app-auto-hide data-delay="1000" class="app_overlay">
+        <section class="app_section">
+          <h2>Strip behavior</h2>
+          <select class="input" onchange="${ callback(e => this.selectStripBehavior(e)) }">
+            ${ forEach(Object.keys(this.config.stripBehavior.list), key => `
+              <option value="${ key }" ${ key === this.config.stripBehavior.current ? 'selected' : '' }>
+                ${ key }
+              </option>
+            `)}
+          </select>
+        </section>
+        
+        <section class="app_section">
+          <h2>Viewport</h2>
+          <select class="input" onchange="${ callback(e => this.selectViewportRenderer(e)) }">
+            ${ forEach(Object.keys(this.config.viewportRenderer.list), key => `
+              <option value="${ key }" ${ key === this.config.viewportRenderer.current ? 'selected' : '' }>
+                ${ key }
+              </option>
+            `)}
+          </select>
+        </section>
+      
+        <section class="app_section">
+          <h2>Remote strip</h2>
+          <form class="app_remoteStripForm comboInput mb-1" onsubmit="${ callback(e => this.onConnectToRemoteStrip(e)) }">
+            <div ${ this.elementRefs.remoteStripConnexionIndicator } class="app_remoteStripForm_connexionIndicator input"></div>
+            <input
+              ${ this.elementRefs.remoteStripHostInput }
+              type="text"
+              class="input"
+              size="1"
+              placeholder="Type the IP of the remote strip"
+              value="${ this.config.remoteStrip.host }"
+            />
+            <input type="submit" value="Connect" class="button"/>
+          </form>
+        
+          <details>
+            <summary>How this works ?</summary>
+            <h3>Purpose</h3>
+            <p>
+              Allows <strong>Luminote</strong> to control a <strong>LED strip (WS2812)</strong>, connected to an <strong>ESP32</strong>, via the <strong>Wi-Fi network</strong>.
+            </p>
+            
+            <h3>How to use it</h3>
+            <h4>LED strip</h4>
+            <ol>
+              <li class="mb-1">
+                <strong>Install the <a href="https://github.com/Yori-Mirano/websocket-esp32-remote-led-strip">websocket-esp32-remote-led-strip</a> program</strong>
+                to an <strong>ESP32</strong> (follow the README instructions)
+              </li>
+              
+              <li class="mb-1">
+                <strong>Plug</strong> a <strong>LED strip (WS2812)</strong> to the <strong>ESP32</strong>
+              </li>
+              
+              <li class="mb-1">
+                <strong>Turn it on</strong>
+              </li>
+            </ol>
+              
+            <h4>Luminote</h4>
+            <ol>
+              <li class="mb-1">
+                <a class="button" href="${ window.location.href }" download>Download Luminote</a>
+              </li>
+              
+              <li class="mb-1">
+                Open it <strong>locally</strong>
+              </li>
+              
+              <li class="mb-1">
+                <strong>Type the IP</strong> of the LED strip, and <strong>connect</strong>
+              </li>
+              
+              <li class="mb-1">
+                <strong>Play piano to see the LED strip react</strong><br/>
+                (with your MIDI device, or by clicking any key on the virtual piano keyboard)
+              </li>
+            </ol>
+            
+            <h3>Why locally ?</h3>
+            <p>
+              Luminote connects to the LED strip via the <code>ws://</code> protocol because the ESP32 does not have the capacity to
+              support the encrypted one (<code>wss://</code>).
+            </p>
+            <p>
+              However, browsers, for security reasons, prevents the use of such a
+              connection from a site hosted on a server.
+            </p>
+          </details>
+        </section>
+        
+        <details class="app_section">
+          <summary>Connected MIDI devices</summary>
+          <ul ${ this.elementRefs.midiPortsList }></ul>
+        </details>
+        
+        <section class="app_section text-center">
+          <p>
+            by Yori Mirano | <a href="https://github.com/Yori-Mirano/luminote">Github</a>
+          </p>
+        </section>
+      </app-auto-hide>
+      
+      <div ${ this.elementRefs.viewportStripRenderer } class="grow relative"></div>
+      <app-line-strip-renderer ${ this.elementRefs.lineStripRenderer } class="app_strip"></app-line-strip-renderer>
+      
+      <app-piano-keyboard 
+          ${ this.elementRefs.pianoKeyboard }
+          class="shrink-0"
+          data-lowest-key="${ this.config.pianoKeyboard.lowestKey }"
+          data-highest-key="${ this.config.pianoKeyboard.highestKey }">
+      </app-piano-keyboard>
+    `;
+  }
+
+  init() {
     this.initStrip()
     this.initNoteState();
-    this.initPianoKeyboard();
     this.initStripBehavior();
-    this.connectToRemoteStrip();
-
+    this.initRemoteStrip();
     this.initStripElement();
-    this.initViewportElement();
-    this.initStripBehaviorSelectElement();
-
+    this.initViewportRenderer();
     this.initMidiAccess();
 
     this.startMainLoop();
@@ -70,17 +190,26 @@ class App {
       this.syncRemoteStrip();
     }
 
-    this.lineStripRenderer.render();
-    this.slideUpStripRenderer.render();
+    this.elementRefs.lineStripRenderer.element.render();
+    this.viewportRendererElement.render();
   }
 
 
   initStrip() {
-    this.strip = new Strip(this.config.pianoKeyboard.noteRange.end - this.config.pianoKeyboard.noteRange.start + 1);
+    this.strip = new Strip(this.config.pianoKeyboard.highestKey - this.config.pianoKeyboard.lowestKey + 1);
+  }
+
+  initRemoteStrip() {
+    this.remoteStripOffset = this.config.remoteStrip.startPointNote - this.config.pianoKeyboard.lowestKey;
+    this.connectToRemoteStrip();
   }
 
   connectToRemoteStrip() {
     if (this.config.remoteStrip.host) {
+      if (this.remoteStripConnexion) {
+        this.remoteStripConnexion.disconnect();
+      }
+
       this.remoteStripConnexion = new RemoteStrip(this.config.remoteStrip.host, (strip, syncRemoteStrip) => {
         this.remoteStrip = strip;
         this.syncRemoteStrip = syncRemoteStrip;
@@ -91,46 +220,23 @@ class App {
   }
 
   initRemoteStripEventListener() {
-    const connexionIndicatorElement = document.getElementById(this.config.domMapping.forms.remoteStrip.connexionIndicatorElementId);
-
     this.remoteStripConnexion.addEventListener(RemoteStrip.ON_CONNECTED, () => {
-      connexionIndicatorElement.classList.add('stream-online-indicator--online');
+      this.elementRefs.remoteStripConnexionIndicator.element.classList.add('-online');
     });
 
     this.remoteStripConnexion.addEventListener(RemoteStrip.ON_DISCONNECTED, () => {
-      connexionIndicatorElement.classList.remove('stream-online-indicator--online');
+      this.elementRefs.remoteStripConnexionIndicator.element.classList.remove('-online');
     });
   }
 
-  initOverlay() {
-    // TODO: refactor en web component autonome
-    const overlay = document.getElementById('overlay');
-    new AutoHiddenLayer(overlay);
-  }
 
-  initForms() {
-    this.initRemoteStripForm();
-  }
+  onConnectToRemoteStrip(event: Event) {
+    event.preventDefault();
 
-  initRemoteStripForm() {
-    const formElement = <HTMLFormElement>document.getElementById(this.config.domMapping.forms.remoteStrip.formElementId);
-    const inputElement = <HTMLInputElement>document.getElementById(this.config.domMapping.forms.remoteStrip.hostInputElementId);
+    this.config.remoteStrip.host = this.elementRefs.remoteStripHostInput.element.value;
+    localStorage.remoteStripHost = this.config.remoteStrip.host;
 
-    inputElement.value = this.config.remoteStrip.host;
-
-    formElement.addEventListener('submit', event => {
-      event.preventDefault();
-
-      this.config.remoteStrip.host = inputElement.value;
-      localStorage.remoteStripHost = this.config.remoteStrip.host;
-
-      if (this.config.remoteStrip.host) {
-        this.remoteStripConnexion.disconnect();
-        this.connectToRemoteStrip();
-      }
-
-      return false;
-    });
+    this.connectToRemoteStrip();
   }
 
   initNoteState() {
@@ -144,37 +250,40 @@ class App {
   }
 
   initStripBehavior() {
-    this.stripBehavior = new this.config.stripBehavior.current(this.strip, this.notes);
+    const stripBehaviorClass = this.config.stripBehavior.list[this.config.stripBehavior.current];
+    this.stripBehavior = new stripBehaviorClass(this.strip, this.notes);
   }
 
   initStripElement() {
-    const stripElement = document.getElementById(this.config.domMapping.stripElementId);
-    stripElement.style.marginLeft = this.pianoKeyboard.leftMargin + '%';
-    stripElement.style.marginRight = this.pianoKeyboard.rightMargin + '%';
-    this.lineStripRenderer = new LineStripRenderer(stripElement, this.strip, 8);
+    const element = this.elementRefs.lineStripRenderer.element;
+
+    element.style.marginLeft = this.elementRefs.pianoKeyboard.element.leftMargin + '%';
+    element.style.marginRight = this.elementRefs.pianoKeyboard.element.rightMargin + '%';
+    element.factor = 8;
+    element.strip = this.strip;
   }
 
-  initViewportElement() {
-    const viewportElement = document.getElementById(this.config.domMapping.viewportElementId);
-    viewportElement.style.marginLeft = this.pianoKeyboard.leftMargin + '%';
-    viewportElement.style.marginRight = this.pianoKeyboard.rightMargin + '%';
-    this.slideUpStripRenderer = new SlideUpStripRenderer(viewportElement, this.strip, 4);
+  initViewportRenderer() {
+    const rendererTagname = this.config.viewportRenderer.list[this.config.viewportRenderer.current];
+    const element = <StripRendererElement>document.createElement(rendererTagname);
+    this.viewportRendererElement = element;
+    element.style.position = 'absolute';
+    element.style.inset = '0';
+    element.style.marginLeft = this.elementRefs.pianoKeyboard.element.leftMargin + '%';
+    element.style.marginRight = this.elementRefs.pianoKeyboard.element.rightMargin + '%';
+    this.elementRefs.viewportStripRenderer.element.appendChild(element);
+
+    element.factor = 4;
+    element.strip = this.strip;
   }
 
-  initPianoKeyboard() {
-    this.pianoKeyboard = new PianoKeyboard(
-      document.getElementById('pianoKeyboard'),
-      this.config.pianoKeyboard.noteRange.start,
-      this.config.pianoKeyboard.noteRange.end
-    );
-  }
 
   initMidiAccess() {
-    const midiPorts = document.getElementById(this.config.domMapping.midiPortsElementId);
+    const midiPorts = this.elementRefs.midiPortsList.element;
     const midiAccess = new MidiAccess();
 
     midiAccess.addEventListener(MidiAccess.ON_PORT_CONNECTED, (event: CustomEvent<PortEvent>) => {
-      this.pianoKeyboard.enable();
+      this.elementRefs.pianoKeyboard.element.enable();
 
       const portItem = document.createElement('li');
       portItem.innerText = `[${event.detail.port.type}] ${event.detail.port.name}`;
@@ -182,25 +291,25 @@ class App {
     });
 
     midiAccess.addEventListener(MidiAccess.ON_PORT_DISCONNECTED, (event: CustomEvent<PortEvent>) => {
-      this.pianoKeyboard.disable();
+      this.elementRefs.pianoKeyboard.element.disable();
     });
 
     midiAccess.addEventListener(MidiAccess.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
-      this.pianoKeyboard.pressKey(event.detail.note);
-      this.notes[event.detail.note - this.config.pianoKeyboard.noteRange.start].pressed   = true;
-      this.notes[event.detail.note - this.config.pianoKeyboard.noteRange.start].pedal     = this.pianoKeyboard.isPedalDown();
-      this.notes[event.detail.note - this.config.pianoKeyboard.noteRange.start].velocity  = event.detail.velocity / 128;
+      this.elementRefs.pianoKeyboard.element.pressKey(event.detail.note);
+      this.notes[event.detail.note - this.config.pianoKeyboard.lowestKey].pressed   = true;
+      this.notes[event.detail.note - this.config.pianoKeyboard.lowestKey].pedal     = this.elementRefs.pianoKeyboard.element.isPedalDown();
+      this.notes[event.detail.note - this.config.pianoKeyboard.lowestKey].velocity  = event.detail.velocity / 128;
     })
 
     midiAccess.addEventListener(MidiAccess.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
-      this.pianoKeyboard.releaseKey(event.detail.note);
-      this.notes[event.detail.note - this.config.pianoKeyboard.noteRange.start].pressed = false;
+      this.elementRefs.pianoKeyboard.element.releaseKey(event.detail.note);
+      this.notes[event.detail.note - this.config.pianoKeyboard.lowestKey].pressed = false;
     });
 
     midiAccess.addEventListener(MidiAccess.ON_SUSTAIN, (event: CustomEvent<SustainEvent>) => {
-      this.pianoKeyboard.setPedal(event.detail.level);
+      this.elementRefs.pianoKeyboard.element.setPedal(event.detail.level);
 
-      if (this.pianoKeyboard.isPedalDown()) {
+      if (this.elementRefs.pianoKeyboard.element.isPedalDown()) {
         this.notes.forEach(note => note.pedal = !!(note.pressed || note.pedal));
       } else {
         this.notes.forEach(note => note.pedal = false);
@@ -209,12 +318,12 @@ class App {
 
     midiAccess.requestMidiAccess();
 
-    this.pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
+    this.elementRefs.pianoKeyboard.element.addEventListener(PianoKeyboardElement.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
       midiAccess.triggerNoteOn(event.detail.note, event.detail.velocity);
       midiAccess.sendNoteOn(event.detail.note, event.detail.velocity);
     });
 
-    this.pianoKeyboard.addEventListener(PianoKeyboard.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
+    this.elementRefs.pianoKeyboard.element.addEventListener(PianoKeyboardElement.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
       midiAccess.triggerNoteOff(event.detail.note);
       midiAccess.sendNoteOff(event.detail.note);
     });
@@ -226,31 +335,17 @@ class App {
     setTimeout(() => this.startMainLoop(), this.frameInterval);
   }
 
-  private initStripBehaviorSelectElement() {
-    const selectElement = document.getElementById(this.config.domMapping.stripBehaviorSelectElementId);
+  selectStripBehavior(event: Event) {
+    this.config.stripBehavior.current = (event.target as HTMLSelectElement).value;
+    localStorage.stripBehavior = this.config.stripBehavior.current;
+    this.initStripBehavior();
+  }
 
-    Object.entries(this.config.stripBehavior.list).forEach(([key, value]) => {
-      const optionElement = document.createElement('option');
-
-      optionElement.value = key;
-      optionElement.innerText = key;
-
-      if (value === this.config.stripBehavior.current) {
-        optionElement.selected = true;
-      }
-
-      selectElement.appendChild(optionElement);
-    });
-
-    selectElement.addEventListener('change', (event) => {
-      const selectedBehavior = (event.target as HTMLSelectElement).value;
-      this.config.stripBehavior.current = this.config.stripBehavior.list[selectedBehavior];
-      this.initStripBehavior();
-    });
+  selectViewportRenderer(event: Event) {
+    this.config.viewportRenderer.current = (event.target as HTMLSelectElement).value;
+    localStorage.viewportRenderer = this.config.viewportRenderer.current;
+    this.initViewportRenderer();
   }
 }
 
-
-
-const app = new App(appConfig);
-app.start();
+customElements.define('app-root', AppElement);

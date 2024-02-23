@@ -1,5 +1,8 @@
 # Luminote
 
+## Demo
+https://yori-mirano.github.io/luminote/luminote.html
+
 ## Usage
 Open `dist/luminote.html` in a browser.
 
@@ -11,4 +14,7 @@ Open `dist/luminote.html` in a browser.
 `npm start` and open `http://localhost:8080/luminote.html`
 
 ### Build
-`npm run build` generate the `dist/luminote.html` file and the API doc in the `docs` directory.
+`npm run build` generate the `dist/luminote.html` file and the API doc in the `dist/docs` directory.
+
+### Doc
+https://yori-mirano.github.io/luminote/docs/

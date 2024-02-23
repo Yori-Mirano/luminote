@@ -47,7 +47,7 @@ module.exports = {
 
   plugins: [
     new HtmlWebpackPlugin({
-      template: 'src/app.html',
+      template: 'src/index.html',
       filename: "luminote.html",
       cache: false
     }),

@@ -1,0 +1,66 @@
+:root {
+  --form-border-radius: 1rem
+}
+
+:not(.comboInput) > :focus-visible,
+.comboInput:has(:focus-visible) {
+  outline: .2rem solid var(--link-color);
+  outline-offset: .2rem;
+}
+
+.input,
+.button, {
+  display:  inline-flex;
+  align-items: center;
+  padding:  1rem 2rem;
+  min-height: 4rem;
+  border:   none;
+  border-radius: var(--form-border-radius);
+  text-decoration: none;
+  outline: none;
+}
+
+.input {
+  background-color: #fff;
+  color: #444;
+}
+
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  box-shadow:0 0 0 10vw white inset;
+}
+
+.button {
+  background-color: var(--primary-color);
+  color: #fff;
+  justify-content: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--primary-color--lighter);
+  }
+}
+
+.comboInput,
+.inputGroup {
+  display: flex;
+  border-radius: var(--form-border-radius);
+
+  :first-of-type {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  :not(:first-child):not(:last-child) {
+    border-radius: 0;
+  }
+
+  :last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+}
