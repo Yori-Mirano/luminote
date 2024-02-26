@@ -12,7 +12,7 @@ export const appConfig: AppConfig = {
   },
 
   remoteStrip: {
-    host: localStorage.remoteStripHost || '',
+    host: '',
     startPointNote: MidiNoteTools.getMidiNote('A1'),
   },
 

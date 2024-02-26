@@ -6,18 +6,15 @@ import { MidiAccess, NoteOffEvent, NoteOnEvent, PortEvent, SustainEvent } from "
 import { Strip } from "./app/shared/strip/strip";
 import { Note } from "./app/shared/strip/note.model";
 import { StripBehavior } from "./app/shared/strip/stripBehaviors/abstracts/strip-behavior";
-import { AppConfig } from "./app/core/app-config.model";
 import { appConfig } from "./app.config";
 import { StripRendererElement } from "./app/shared/custom-elements/stripRenderers/abstracts/strip-renderer.element";
 import { CustomElement } from "./app/shared/custom-elements/custom-element";
 import { ElementRef } from "./app/shared/template-helpers/element-ref";
 import { callback } from "./app/shared/template-helpers/callback.function";
 import { forEach } from "./app/shared/template-helpers/forEach.function";
-
+import { appStateStore } from "./app.state-store";
 
 class AppElement extends HTMLElement implements CustomElement {
-
-  config: AppConfig;
 
   framePerSecond = 60;
   frameInterval = 1000 / this.framePerSecond;
@@ -45,7 +42,6 @@ class AppElement extends HTMLElement implements CustomElement {
 
 
   connectedCallback() {
-    this.config = appConfig;
     this.viewInit();
     this.init();
   }
@@ -56,8 +52,8 @@ class AppElement extends HTMLElement implements CustomElement {
         <section class="app_section">
           <h2>Strip behavior</h2>
           <select class="input" onchange="${ callback(e => this.selectStripBehavior(e)) }">
-            ${ forEach(Object.keys(this.config.stripBehavior.list), key => `
-              <option value="${ key }" ${ key === this.config.stripBehavior.current ? 'selected' : '' }>
+            ${ forEach(Object.keys(appConfig.stripBehavior.list), key => `
+              <option value="${ key }" ${ key === appStateStore.currentStripBehavior.value ? 'selected' : '' }>
                 ${ key }
               </option>
             `)}
@@ -67,8 +63,8 @@ class AppElement extends HTMLElement implements CustomElement {
         <section class="app_section">
           <h2>Viewport</h2>
           <select class="input" onchange="${ callback(e => this.selectViewportRenderer(e)) }">
-            ${ forEach(Object.keys(this.config.viewportRenderer.list), key => `
-              <option value="${ key }" ${ key === this.config.viewportRenderer.current ? 'selected' : '' }>
+            ${ forEach(Object.keys(appConfig.viewportRenderer.list), key => `
+              <option value="${ key }" ${ key === appStateStore.currentViewportRenderer.value ? 'selected' : '' }>
                 ${ key }
               </option>
             `)}
@@ -85,7 +81,7 @@ class AppElement extends HTMLElement implements CustomElement {
               class="input"
               size="1"
               placeholder="Type the IP of the remote strip"
-              value="${ this.config.remoteStrip.host }"
+              value="${ appStateStore.remoteStripHost.value }"
             />
             <input type="submit" value="Connect" class="button"/>
           </form>
@@ -164,8 +160,8 @@ class AppElement extends HTMLElement implements CustomElement {
       <app-piano-keyboard 
           ${ this.elementRefs.pianoKeyboard }
           class="shrink-0"
-          data-lowest-key="${ this.config.pianoKeyboard.lowestKey }"
-          data-highest-key="${ this.config.pianoKeyboard.highestKey }">
+          data-lowest-key="${ appConfig.pianoKeyboard.lowestKey }"
+          data-highest-key="${ appConfig.pianoKeyboard.highestKey }">
       </app-piano-keyboard>
     `;
   }
@@ -196,21 +192,21 @@ class AppElement extends HTMLElement implements CustomElement {
 
 
   initStrip() {
-    this.strip = new Strip(this.config.pianoKeyboard.highestKey - this.config.pianoKeyboard.lowestKey + 1);
+    this.strip = new Strip(appConfig.pianoKeyboard.highestKey - appConfig.pianoKeyboard.lowestKey + 1);
   }
 
   initRemoteStrip() {
-    this.remoteStripOffset = this.config.remoteStrip.startPointNote - this.config.pianoKeyboard.lowestKey;
+    this.remoteStripOffset = appConfig.remoteStrip.startPointNote - appConfig.pianoKeyboard.lowestKey;
     this.connectToRemoteStrip();
   }
 
   connectToRemoteStrip() {
-    if (this.config.remoteStrip.host) {
+    if (appConfig.remoteStrip.host) {
       if (this.remoteStripConnexion) {
         this.remoteStripConnexion.disconnect();
       }
 
-      this.remoteStripConnexion = new RemoteStrip(this.config.remoteStrip.host, (strip, syncRemoteStrip) => {
+      this.remoteStripConnexion = new RemoteStrip(appConfig.remoteStrip.host, (strip, syncRemoteStrip) => {
         this.remoteStrip = strip;
         this.syncRemoteStrip = syncRemoteStrip;
       });
@@ -232,10 +228,7 @@ class AppElement extends HTMLElement implements CustomElement {
 
   onConnectToRemoteStrip(event: Event) {
     event.preventDefault();
-
-    this.config.remoteStrip.host = this.elementRefs.remoteStripHostInput.element.value;
-    localStorage.remoteStripHost = this.config.remoteStrip.host;
-
+    appStateStore.remoteStripHost.value = this.elementRefs.remoteStripHostInput.element.value;
     this.connectToRemoteStrip();
   }
 
@@ -250,7 +243,7 @@ class AppElement extends HTMLElement implements CustomElement {
   }
 
   initStripBehavior() {
-    const stripBehaviorClass = this.config.stripBehavior.list[this.config.stripBehavior.current];
+    const stripBehaviorClass = appConfig.stripBehavior.list[appStateStore.currentStripBehavior.value];
     this.stripBehavior = new stripBehaviorClass(this.strip, this.notes);
   }
 
@@ -264,7 +257,7 @@ class AppElement extends HTMLElement implements CustomElement {
   }
 
   initViewportRenderer() {
-    const rendererTagname = this.config.viewportRenderer.list[this.config.viewportRenderer.current];
+    const rendererTagname = appConfig.viewportRenderer.list[appStateStore.currentViewportRenderer.value];
     const element = <StripRendererElement>document.createElement(rendererTagname);
     this.viewportRendererElement = element;
     element.style.position = 'absolute';
@@ -296,14 +289,14 @@ class AppElement extends HTMLElement implements CustomElement {
 
     midiAccess.addEventListener(MidiAccess.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
       this.elementRefs.pianoKeyboard.element.pressKey(event.detail.note);
-      this.notes[event.detail.note - this.config.pianoKeyboard.lowestKey].pressed   = true;
-      this.notes[event.detail.note - this.config.pianoKeyboard.lowestKey].pedal     = this.elementRefs.pianoKeyboard.element.isPedalDown();
-      this.notes[event.detail.note - this.config.pianoKeyboard.lowestKey].velocity  = event.detail.velocity / 128;
+      this.notes[event.detail.note - appConfig.pianoKeyboard.lowestKey].pressed   = true;
+      this.notes[event.detail.note - appConfig.pianoKeyboard.lowestKey].pedal     = this.elementRefs.pianoKeyboard.element.isPedalDown();
+      this.notes[event.detail.note - appConfig.pianoKeyboard.lowestKey].velocity  = event.detail.velocity / 128;
     })
 
     midiAccess.addEventListener(MidiAccess.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
       this.elementRefs.pianoKeyboard.element.releaseKey(event.detail.note);
-      this.notes[event.detail.note - this.config.pianoKeyboard.lowestKey].pressed = false;
+      this.notes[event.detail.note - appConfig.pianoKeyboard.lowestKey].pressed = false;
     });
 
     midiAccess.addEventListener(MidiAccess.ON_SUSTAIN, (event: CustomEvent<SustainEvent>) => {
@@ -336,14 +329,12 @@ class AppElement extends HTMLElement implements CustomElement {
   }
 
   selectStripBehavior(event: Event) {
-    this.config.stripBehavior.current = (event.target as HTMLSelectElement).value;
-    localStorage.stripBehavior = this.config.stripBehavior.current;
+    appStateStore.currentStripBehavior.value = (event.target as HTMLSelectElement).value;
     this.initStripBehavior();
   }
 
   selectViewportRenderer(event: Event) {
-    this.config.viewportRenderer.current = (event.target as HTMLSelectElement).value;
-    localStorage.viewportRenderer = this.config.viewportRenderer.current;
+    appStateStore.currentViewportRenderer.value = (event.target as HTMLSelectElement).value;
     this.initViewportRenderer();
   }
 }
