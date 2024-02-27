@@ -1,3 +1,6 @@
+/**
+ * @module MidiNoteTools
+ */
 export class MidiNoteTools {
 
   static readonly MIDI_TO_NAME = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];

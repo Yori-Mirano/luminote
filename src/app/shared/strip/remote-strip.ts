@@ -1,3 +1,6 @@
+/**
+ * @module RemoteStrip
+ */
 import { Strip } from "./strip";
 
 export class RemoteStrip extends EventTarget {

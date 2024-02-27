@@ -1,3 +1,6 @@
+/**
+ * @module LineStripRendererElement
+ */
 import { CanvasStripRendererElement } from "./abstracts/canvas.strip-renderer.element";
 
 export class LineStripRendererElement extends CanvasStripRendererElement {

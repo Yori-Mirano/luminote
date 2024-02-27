@@ -1,3 +1,6 @@
+/**
+ * @module RipplesStripBehavior
+ */
 import { OnInit, StripBehavior } from "./abstracts/strip-behavior";
 import { Strip } from "../strip";
 

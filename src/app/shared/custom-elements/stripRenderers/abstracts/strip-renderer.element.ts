@@ -1,5 +1,8 @@
+/**
+ * @module StripRendererElement
+ */
 import { Strip } from "../../../strip/strip";
-import { CustomElement } from "../../custom-element";
+import { CustomElement } from "../../../custom-element";
 
 export abstract class StripRendererElement extends HTMLElement implements CustomElement {
 

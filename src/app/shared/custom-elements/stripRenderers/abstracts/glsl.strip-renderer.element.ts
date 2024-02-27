@@ -1,3 +1,6 @@
+/**
+ * @module GlslStripRendererElement
+ */
 import { StripRendererElement } from "./strip-renderer.element";
 import GlslCanvas from "glslCanvas";
 

@@ -8,7 +8,7 @@
     "watch": "webpack --watch",
     "build": "npm-run-all build:*",
     "build:dist": "webpack",
-    "build:doc": "npx typedoc --out dist/docs --entryPointStrategy expand src",
+    "build:doc": "npx typedoc --out dist/docs --entryPointStrategy expand src/app/shared",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

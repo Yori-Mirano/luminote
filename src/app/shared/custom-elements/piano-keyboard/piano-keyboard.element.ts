@@ -1,5 +1,8 @@
+/**
+ * @module PianoKeyboardElement
+ */
 import './piano-keyboard.element.scss';
-import { CustomElement } from "../custom-element";
+import { CustomElement } from "../../custom-element";
 import { MidiNoteTools } from "../../midi/midi-note-tools";
 
 export interface NoteOnEvent {

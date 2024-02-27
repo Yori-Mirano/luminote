@@ -1,3 +1,6 @@
+/**
+ * @module PersistedObservable
+ */
 import { Observable } from "./observable";
 
 export class PersistedObservable<T> extends Observable<T> {

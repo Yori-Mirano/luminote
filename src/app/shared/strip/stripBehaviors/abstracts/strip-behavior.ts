@@ -1,3 +1,6 @@
+/**
+ * @module StripBehavior
+ */
 import { Strip } from "../../strip";
 import { Note } from "../../note.model";
 

@@ -1,5 +1,8 @@
+/**
+ * @module AutoHideElement
+ */
 import './auto-hide.element.scss';
-import { CustomElement } from "../custom-element";
+import { CustomElement } from "../../custom-element";
 
 /**
  * An element that automatically hides itself after a specified delay

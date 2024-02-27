@@ -1,3 +1,7 @@
+/**
+ * @module Strip
+ */
+
 export interface Color {
   r: number;
   g: number;

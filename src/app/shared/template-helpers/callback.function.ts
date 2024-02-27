@@ -1,3 +1,6 @@
+/**
+ * @module callback
+ */
 let count = 0;
 
 const GLOBAL_REGISTRY_NAME = 'templateCallbacks';

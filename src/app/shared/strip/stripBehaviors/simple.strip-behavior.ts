@@ -1,3 +1,6 @@
+/**
+ * @module SimpleStripBehavior
+ */
 import { StripBehavior } from "./abstracts/strip-behavior";
 
 export class SimpleStripBehavior extends StripBehavior {

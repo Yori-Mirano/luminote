@@ -1,3 +1,6 @@
+/**
+ * @module SlideUpStripRendererElement
+ */
 import { GlslStripRendererElement } from "./abstracts/glsl.strip-renderer.element";
 
 export class SlideUpStripRendererElement extends GlslStripRendererElement {

@@ -1,3 +1,6 @@
+/**
+ * @module ElementRef
+ */
 export class ElementRef<T = HTMLElement> {
 
   static count = 0;

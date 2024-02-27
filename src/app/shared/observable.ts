@@ -1,4 +1,6 @@
-import { callback } from "./template-helpers/callback.function";
+/**
+ * @module Observable
+ */
 
 export type ObservableCallback<T> = (value: T) => void;
 

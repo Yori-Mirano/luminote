@@ -1,3 +1,6 @@
+/**
+ * @module OctavesStripBehavior
+ */
 import { StripBehavior } from "./abstracts/strip-behavior";
 
 export class OctavesStripBehavior extends StripBehavior {

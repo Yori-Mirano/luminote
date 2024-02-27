@@ -1,3 +1,6 @@
+/**
+ * @module CanvasStripRendererElement
+ */
 import { StripRendererElement } from "./strip-renderer.element";
 
 export abstract class CanvasStripRendererElement extends StripRendererElement {

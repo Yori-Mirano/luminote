@@ -1,3 +1,6 @@
+/**
+ * @module MidiAccess
+ */
 import MIDIAccess = WebMidi.MIDIAccess;
 import MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 import MIDIInput = WebMidi.MIDIInput;
