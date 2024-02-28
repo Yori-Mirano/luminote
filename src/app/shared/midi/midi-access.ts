@@ -1,4 +1,5 @@
 /**
+ * @group MIDI
  * @module MidiAccess
  */
 import MIDIAccess = WebMidi.MIDIAccess;

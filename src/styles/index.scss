@@ -1,4 +1,9 @@
 @use "theme";
 @use "base";
 @use "form";
+
+// COMPONENTS
+@use "components/tags";
+
+// UTILITY CLASSES
 @use "utility-classes";

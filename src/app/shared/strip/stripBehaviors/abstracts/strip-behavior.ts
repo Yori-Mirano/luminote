@@ -1,4 +1,5 @@
 /**
+ * @group Strip
  * @module StripBehavior
  */
 import { Strip } from "../../strip";

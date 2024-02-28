@@ -1,4 +1,5 @@
 /**
+ * @group Strip
  * @module SimpleStripBehavior
  */
 import { StripBehavior } from "./abstracts/strip-behavior";

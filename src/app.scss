@@ -15,11 +15,8 @@ app-root {
     top: 1rem;
     width: min(calc(100% - 2rem), 45rem);
     max-height: calc(100% - 2rem);
-    display: flex;
-    flex-direction: column;
-    gap: .2rem;
     border-radius: 1rem;
-    backdrop-filter: blur(2rem);
+    backdrop-filter: blur(5rem);
     overflow: auto;
     z-index: 1;
   }

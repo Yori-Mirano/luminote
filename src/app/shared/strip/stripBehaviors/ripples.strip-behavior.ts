@@ -1,4 +1,5 @@
 /**
+ * @group Strip
  * @module RipplesStripBehavior
  */
 import { OnInit, StripBehavior } from "./abstracts/strip-behavior";

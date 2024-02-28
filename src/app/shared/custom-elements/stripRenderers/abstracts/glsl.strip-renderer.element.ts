@@ -1,4 +1,5 @@
 /**
+ * @group Strip
  * @module GlslStripRendererElement
  */
 import { StripRendererElement } from "./strip-renderer.element";

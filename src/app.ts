@@ -68,9 +68,9 @@ class AppElement extends HTMLElement implements CustomElement {
     this.initViewportRenderer();
     this.initMidiAccess();
 
-    appStateStore.remoteStripHost.onChange(() => this.connectToRemoteStrip());
-    appStateStore.currentStripBehavior.onChange(() => this.initStripBehavior());
-    appStateStore.currentViewportRenderer.onChange(() => this.initViewportRenderer());
+    appStateStore.strip.remoteHost.onChange(() => this.connectToRemoteStrip());
+    appStateStore.strip.behavior.onChange(() => this.initStripBehavior());
+    appStateStore.viewportRenderer.onChange(() => this.initViewportRenderer());
 
     this.startMainLoop();
   }
@@ -114,11 +114,11 @@ class AppElement extends HTMLElement implements CustomElement {
 
   initRemoteStripEventListener() {
     this.remoteStripConnexion.addEventListener(RemoteStrip.ON_CONNECTED, () => {
-      appStateStore.isRemoteStripConnected.value = true;
+      appStateStore.strip.isRemoteConnected.value = true;
     });
 
     this.remoteStripConnexion.addEventListener(RemoteStrip.ON_DISCONNECTED, () => {
-      appStateStore.isRemoteStripConnected.value = false;
+      appStateStore.strip.isRemoteConnected.value = false;
     });
   }
 
@@ -133,7 +133,7 @@ class AppElement extends HTMLElement implements CustomElement {
   }
 
   initStripBehavior() {
-    const stripBehaviorClass = appConfig.stripBehavior.list[appStateStore.currentStripBehavior.value];
+    const stripBehaviorClass = appConfig.stripBehavior.list[appStateStore.strip.behavior.value];
     this.stripBehavior = new stripBehaviorClass(this.strip, this.notes);
   }
 
@@ -147,7 +147,7 @@ class AppElement extends HTMLElement implements CustomElement {
   }
 
   initViewportRenderer() {
-    const rendererTagname = appConfig.viewportRenderer.list[appStateStore.currentViewportRenderer.value];
+    const rendererTagname = appConfig.viewportRenderer.list[appStateStore.viewportRenderer.value];
     const element = <StripRendererElement>document.createElement(rendererTagname);
     this.viewportRendererElement = element;
     element.style.position = 'absolute';
@@ -167,12 +167,11 @@ class AppElement extends HTMLElement implements CustomElement {
     midiAccess.addEventListener(MidiAccess.ON_PORT_CONNECTED, (event: CustomEvent<PortEvent>) => {
       this.elementRefs.pianoKeyboard.element.enable();
 
-      appStateStore.midiPortList.value = [
-        ...appStateStore.midiPortList.value,
-        {
-          type: event.detail.port.type,
-          name: event.detail.port.name
-        }
+      const portType = event.detail.port.type;
+
+      appStateStore.midi.ports[portType].value = [
+        ...appStateStore.midi.ports[portType].value,
+        event.detail.port.name
       ];
     });
 

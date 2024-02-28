@@ -1,4 +1,5 @@
 /**
+ * @group Strip
  * @module RemoteStrip
  */
 import { Strip } from "./strip";

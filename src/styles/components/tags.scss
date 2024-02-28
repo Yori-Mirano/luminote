@@ -1,0 +1,11 @@
+.tag {
+  background: var(--tag-bg-color);
+  color: var(--tag-text-color);
+  border-radius: 1rem;
+  padding: .5rem 1rem;
+
+  &.-success {
+    background: var(--tag-bg-color--success);
+    color: var(--tag-text-color--success);
+  }
+}

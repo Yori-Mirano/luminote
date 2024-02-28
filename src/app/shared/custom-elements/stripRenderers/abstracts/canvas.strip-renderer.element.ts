@@ -1,4 +1,5 @@
 /**
+ * @group Strip
  * @module CanvasStripRendererElement
  */
 import { StripRendererElement } from "./strip-renderer.element";

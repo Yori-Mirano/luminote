@@ -1,4 +1,5 @@
 /**
+ * @group Template helpers
  * @module forEach
  */
 export function forEach(collection: any[], callback: (item: any, index: number) => string): string {

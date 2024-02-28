@@ -1,4 +1,5 @@
 /**
+ * @group Template helpers
  * @module callback
  */
 let count = 0;

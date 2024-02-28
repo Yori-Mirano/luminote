@@ -1,4 +1,5 @@
 /**
+ * @group MIDI
  * @module MidiNoteTools
  */
 export class MidiNoteTools {

@@ -1,4 +1,5 @@
 /**
+ * @group Observable
  * @module Observable
  */
 

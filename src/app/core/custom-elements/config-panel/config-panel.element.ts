@@ -4,19 +4,26 @@ import { forEach } from "../../../shared/template-helpers/for-each.function";
 import { appConfig } from "../../../../app.config";
 import { appStateStore } from "../../../../app.state-store";
 import { ElementRef } from "../../../shared/template-helpers/element-ref";
+import MIDIPortType = WebMidi.MIDIPortType;
 
 export class ConfigPanelElement extends HTMLElement implements CustomElement {
 
   elementRefs = {
     remoteStripConnexionIndicator: new ElementRef(),
     remoteStripHostInput: new ElementRef<HTMLInputElement>(),
-    midiPortsList: new ElementRef(),
+    midi: {
+      count: new ElementRef(),
+      ports: {
+        input: new ElementRef(),
+        output: new ElementRef(),
+      }
+    }
   };
 
   connectedCallback() {
     this.initView();
 
-    appStateStore.isRemoteStripConnected.onChange(isConnected => {
+    appStateStore.strip.isRemoteConnected.onChange(isConnected => {
       if (isConnected) {
         this.elementRefs.remoteStripConnexionIndicator.element.classList.add('-online');
       } else {
@@ -24,25 +31,42 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
       }
     });
 
-    appStateStore.midiPortList.onChange(list => {
-      const midiPorts = this.elementRefs.midiPortsList.element;
-      midiPorts.innerHTML = '';
+    (['input', 'output'] as MIDIPortType[]).forEach(portType => {
+      appStateStore.midi.ports[portType].onChange(list => {
+        const midiPorts = this.elementRefs.midi.ports[portType].element;
+        midiPorts.innerHTML = '';
 
-      list.forEach(port => {
-        const portItem = document.createElement('li');
-        portItem.innerText = `[${port.type}] ${port.name}`;
-        midiPorts.appendChild(portItem);
+        list.forEach(port => {
+          const portItem = document.createElement('li');
+          portItem.innerText = port;
+          midiPorts.appendChild(portItem);
+        });
+
+        const inputCount = appStateStore.midi.ports.input.value.length;
+        const outputCount = appStateStore.midi.ports.output.value.length;
+        this.elementRefs.midi.count.element.innerHTML = `
+          <span class="tag ${ inputCount ? '-success' : '' }">inputs: <strong>${ inputCount }</strong></span>
+          <span class="tag ${ outputCount ? '-success' : '' }">outputs: <strong>${ outputCount }</strong></span>
+        `;
       });
     });
   }
 
   initView() {
     this.innerHTML = `
+      <style>
+        ${ this.tagName } {
+          display: flex;
+          flex-direction: column;
+          gap: .2rem;
+        }
+      </style>
+      
       <section class="app_section">
         <h2>Strip behavior</h2>
         <select class="input" onchange="${ callback(e => this.selectStripBehavior(e)) }">
           ${ forEach(Object.keys(appConfig.stripBehavior.list), key => `
-            <option value="${ key }" ${ key === appStateStore.currentStripBehavior.value ? 'selected' : '' }>
+            <option value="${ key }" ${ key === appStateStore.strip.behavior.value ? 'selected' : '' }>
               ${ key }
             </option>
           `)}
@@ -53,7 +77,7 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
         <h2>Viewport</h2>
         <select class="input" onchange="${ callback(e => this.selectViewportRenderer(e)) }">
           ${ forEach(Object.keys(appConfig.viewportRenderer.list), key => `
-            <option value="${ key }" ${ key === appStateStore.currentViewportRenderer.value ? 'selected' : '' }>
+            <option value="${ key }" ${ key === appStateStore.viewportRenderer.value ? 'selected' : '' }>
               ${ key }
             </option>
           `)}
@@ -70,7 +94,7 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
             class="input"
             size="1"
             placeholder="Type the IP of the remote strip"
-            value="${ appStateStore.remoteStripHost.value }"
+            value="${ appStateStore.strip.remoteHost.value }"
           />
           <input type="submit" value="Connect" class="button"/>
         </form>
@@ -132,8 +156,16 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
       </section>
       
       <details class="app_section">
-        <summary>Connected MIDI devices</summary>
-        <ul ${ this.elementRefs.midiPortsList }></ul>
+        <summary>
+          Connected MIDI devices
+          <span ${ this.elementRefs.midi.count }></span>
+        </summary>
+        
+        <h3>Inputs</h3>
+        <ul ${ this.elementRefs.midi.ports.input }></ul>
+        
+        <h3>Outputs</h3>
+        <ul ${ this.elementRefs.midi.ports.output }></ul>
       </details>
       
       <section class="app_section text-center">
@@ -146,15 +178,15 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
 
   onConnectToRemoteStrip(event: Event) {
     event.preventDefault();
-    appStateStore.remoteStripHost.value = this.elementRefs.remoteStripHostInput.element.value;
+    appStateStore.strip.remoteHost.value = this.elementRefs.remoteStripHostInput.element.value;
   }
 
   selectStripBehavior(event: Event) {
-    appStateStore.currentStripBehavior.value = (event.target as HTMLSelectElement).value;
+    appStateStore.strip.behavior.value = (event.target as HTMLSelectElement).value;
   }
 
   selectViewportRenderer(event: Event) {
-    appStateStore.currentViewportRenderer.value = (event.target as HTMLSelectElement).value;
+    appStateStore.viewportRenderer.value = (event.target as HTMLSelectElement).value;
   }
 
 }

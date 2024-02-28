@@ -1,4 +1,5 @@
 /**
+ * @group Observable
  * @module PersistedObservable
  */
 import { Observable } from "./observable";

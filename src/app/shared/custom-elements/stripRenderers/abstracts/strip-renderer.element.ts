@@ -1,4 +1,5 @@
 /**
+ * @group Strip
  * @module StripRendererElement
  */
 import { Strip } from "../../../strip/strip";

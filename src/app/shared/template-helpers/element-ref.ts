@@ -1,4 +1,5 @@
 /**
+ * @group Template helpers
  * @module ElementRef
  */
 export class ElementRef<T = HTMLElement> {

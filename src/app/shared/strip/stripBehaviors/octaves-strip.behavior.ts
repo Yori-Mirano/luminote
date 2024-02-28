@@ -1,4 +1,5 @@
 /**
+ * @group Strip
  * @module OctavesStripBehavior
  */
 import { StripBehavior } from "./abstracts/strip-behavior";
