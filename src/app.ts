@@ -1,6 +1,9 @@
 import './app.scss';
 import "./app/core/custom-elements.index";
-import { PianoKeyboardElement } from "./app/shared/custom-elements/piano-keyboard/piano-keyboard.element";
+import {
+  KeyPressedEvent, KeyReleasedEvent,
+  PianoKeyboardElement
+} from "./app/shared/custom-elements/piano-keyboard/piano-keyboard.element";
 import { RemoteStrip } from "./app/shared/strip/remote-strip";
 import { MidiAccess, NoteOffEvent, NoteOnEvent, PortEvent, SustainEvent } from "./app/shared/midi/midi-access";
 import { Strip } from "./app/shared/strip/strip";
@@ -126,7 +129,7 @@ class AppElement extends HTMLElement implements CustomElement {
     this.strip.forEach(i => {
       this.notes[i] = {
         pressed: false,
-        pedal: false,
+        sustained: false,
         velocity: 0,
       }
     });
@@ -182,7 +185,7 @@ class AppElement extends HTMLElement implements CustomElement {
     midiAccess.addEventListener(MidiAccess.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
       this.elementRefs.pianoKeyboard.element.pressKey(event.detail.note);
       this.notes[event.detail.note - appConfig.pianoKeyboard.lowestKey].pressed   = true;
-      this.notes[event.detail.note - appConfig.pianoKeyboard.lowestKey].pedal     = this.elementRefs.pianoKeyboard.element.isPedalDown();
+      this.notes[event.detail.note - appConfig.pianoKeyboard.lowestKey].sustained = this.elementRefs.pianoKeyboard.element.isSustained();
       this.notes[event.detail.note - appConfig.pianoKeyboard.lowestKey].velocity  = event.detail.velocity / 128;
     })
 
@@ -192,23 +195,23 @@ class AppElement extends HTMLElement implements CustomElement {
     });
 
     midiAccess.addEventListener(MidiAccess.ON_SUSTAIN, (event: CustomEvent<SustainEvent>) => {
-      this.elementRefs.pianoKeyboard.element.setPedal(event.detail.level);
+      this.elementRefs.pianoKeyboard.element.setSustain(event.detail.level);
 
-      if (this.elementRefs.pianoKeyboard.element.isPedalDown()) {
-        this.notes.forEach(note => note.pedal = !!(note.pressed || note.pedal));
+      if (this.elementRefs.pianoKeyboard.element.isSustained()) {
+        this.notes.forEach(note => note.sustained = !!(note.pressed || note.sustained));
       } else {
-        this.notes.forEach(note => note.pedal = false);
+        this.notes.forEach(note => note.sustained = false);
       }
     });
 
     midiAccess.requestMidiAccess();
 
-    this.elementRefs.pianoKeyboard.element.addEventListener(PianoKeyboardElement.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {
+    this.elementRefs.pianoKeyboard.element.addEventListener(PianoKeyboardElement.ON_KEY_PRESSED, (event: CustomEvent<KeyPressedEvent>) => {
       midiAccess.triggerNoteOn(event.detail.note, event.detail.velocity);
       midiAccess.sendNoteOn(event.detail.note, event.detail.velocity);
     });
 
-    this.elementRefs.pianoKeyboard.element.addEventListener(PianoKeyboardElement.ON_NOTE_OFF, (event: CustomEvent<NoteOffEvent>) => {
+    this.elementRefs.pianoKeyboard.element.addEventListener(PianoKeyboardElement.ON_KEY_RELEASED, (event: CustomEvent<KeyReleasedEvent>) => {
       midiAccess.triggerNoteOff(event.detail.note);
       midiAccess.sendNoteOff(event.detail.note);
     });

@@ -5,7 +5,7 @@ import './piano-keyboard.element.scss';
 import { CustomElement } from "../../custom-element";
 import { MidiNoteTools } from "../../midi/midi-note-tools";
 
-export interface NoteOnEvent {
+export interface KeyPressedEvent {
   /** Midi note id from 0 to 127 */
   note: number;
 
@@ -13,13 +13,13 @@ export interface NoteOnEvent {
   velocity: number;
 }
 
-export interface NoteOffEvent {
+export interface KeyReleasedEvent {
   /** Midi note id from 0 to 127 */
   note: number;
 }
 
 /**
- * <app-piano-keyboard data-from="A1" data-to="C9" class="-no-strip"></app-piano-keyboard>
+ * <app-piano-keyboard data-lowest-key="A1" data-highest-key="C9" class="-no-strip"></app-piano-keyboard>
  *
  * @external MidiNoteTools
  */
@@ -28,12 +28,12 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
   /**
    * @eventProperty
    */
-  static readonly ON_NOTE_ON= "note_on";
+  static readonly ON_KEY_PRESSED= "key_pressed";
 
   /**
    * @eventProperty
    */
-  static readonly ON_NOTE_OFF= "note_off";
+  static readonly ON_KEY_RELEASED= "key_released";
 
   /**
    * Retourne `true` si la note correspond à une touche noire d'une clavier de piano.
@@ -77,10 +77,10 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
 
   static observedAttributes = ['data-lowest-key', 'data-highest-key'];
 
-  noteStart: number;
-  noteEnd: number;
-  pedalThreshold = 43;
-  pedalLevel = 0;
+  lowestNote: number;
+  highestNote: number;
+  sustainThreshold = 43;
+  sustainLevel = 0;
   keys: {[key: number] : HTMLElement} = {};
   isKeyOn = false;
 
@@ -104,8 +104,8 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
   }
 
   updateNoteRangeFromElementDataset() {
-    this.noteStart = this.getMidiNote(this.dataset.lowestKey);
-    this.noteEnd = this.getMidiNote(this.dataset.highestKey);
+    this.lowestNote = this.getMidiNote(this.dataset.lowestKey);
+    this.highestNote = this.getMidiNote(this.dataset.highestKey);
   }
 
   private getMidiNote(noteData: string): number {
@@ -117,7 +117,7 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
   }
 
   get totalKeys(): number {
-    return this.noteEnd - this.noteStart + 1;
+    return this.highestNote - this.lowestNote + 1;
   }
 
   init() {
@@ -133,7 +133,7 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
     keyboardBlackKeyContainer.style.right = this.rightMargin + '%';
     this.appendChild(keyboardBlackKeyContainer);
 
-    for (let midiNote = this.noteStart; midiNote <= this.noteEnd; midiNote++) {
+    for (let midiNote = this.lowestNote; midiNote <= this.highestNote; midiNote++) {
       const keyboardKey = document.createElement('button');
       keyboardKey.classList.add('pianoKeyboard_key');
       this.initKeyEventListeners(keyboardKey, midiNote);
@@ -157,20 +157,20 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
   initKeyEventListeners(keyElement: HTMLElement, midiNote: number) {
     keyElement.addEventListener('pointerdown', (event) => {
       event.preventDefault();
-      this.triggerNoteOn(midiNote, this.getVelocityFromPosition(event, keyElement));
+      this.triggerKeyPress(midiNote, this.getVelocityFromPosition(event, keyElement));
     });
 
     ['pointerup', 'blur'].forEach(eventType =>
       keyElement.addEventListener(eventType, event => {
         event.preventDefault();
-        this.triggerNoteOff(midiNote);
+        this.triggerKeyRelease(midiNote);
       })
     );
 
 
     keyElement.addEventListener('keydown', event => {
       if (['Enter', 'Space'].includes(event.code)) {
-        this.triggerNoteOn(midiNote, 127);
+        this.triggerKeyPress(midiNote, 127);
       }
     });
 
@@ -178,20 +178,20 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
       event.preventDefault();
 
       if (['Enter', 'Space'].includes(event.code)) {
-        this.triggerNoteOff(midiNote);
+        this.triggerKeyRelease(midiNote);
       }
     });
 
     keyElement.addEventListener('pointerenter', event => {
       if (this.isKeyOn) {
-        this.triggerNoteOn(midiNote, this.getVelocityFromPosition(event, keyElement));
+        this.triggerKeyPress(midiNote, this.getVelocityFromPosition(event, keyElement));
       }
     });
 
 
     keyElement.addEventListener('pointerleave', () => {
       if (this.isKeyOn) {
-        this.triggerNoteOff(midiNote);
+        this.triggerKeyRelease(midiNote);
       }
     });
   }
@@ -210,15 +210,15 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
   }
 
   get leftMargin () {
-    const previousCNote = MidiNoteTools.getPreviousMidiNoteByName('C', this.noteStart);
-    return (this.noteStart - previousCNote) * this.blackKeyWidthPercent
-           - this.getWhiteKeyCount(previousCNote, this.noteStart -1) * this.whiteKeyWidthPercent;
+    const previousCNote = MidiNoteTools.getPreviousMidiNoteByName('C', this.lowestNote);
+    return (this.lowestNote - previousCNote) * this.blackKeyWidthPercent
+           - this.getWhiteKeyCount(previousCNote, this.lowestNote -1) * this.whiteKeyWidthPercent;
   }
 
   get rightMargin () {
-    const nextCNote = MidiNoteTools.getNextMidiNoteByName('B', this.noteEnd);
-    return (nextCNote - this.noteEnd) * this.blackKeyWidthPercent
-           - this.getWhiteKeyCount(this.noteEnd +1 , nextCNote) * this.whiteKeyWidthPercent;
+    const nextCNote = MidiNoteTools.getNextMidiNoteByName('B', this.highestNote);
+    return (nextCNote - this.highestNote) * this.blackKeyWidthPercent
+           - this.getWhiteKeyCount(this.highestNote +1 , nextCNote) * this.whiteKeyWidthPercent;
   }
 
   get whiteKeyWidthPercent () {
@@ -236,10 +236,10 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
    */
   pressKey(midiNote: number) {
     if (this.keys[midiNote]) {
-      this.keys[midiNote].classList.add('-on');
+      this.keys[midiNote].classList.add('-pressed');
 
-      if (this.isPedalDown()) {
-        this.keys[midiNote].classList.add('-pedal');
+      if (this.isSustained()) {
+        this.keys[midiNote].classList.add('-sustained');
       }
     }
   }
@@ -251,7 +251,7 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
    */
   releaseKey(midiNote: number) {
     if (this.keys[midiNote]) {
-      this.keys[midiNote].classList.remove('-on');
+      this.keys[midiNote].classList.remove('-pressed');
     }
   }
 
@@ -259,26 +259,26 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
    *
    * @param level
    */
-  setPedal(level: number) {
-    this.pedalLevel = level;
+  setSustain(level: number) {
+    this.sustainLevel = level;
 
-    if (this.isPedalDown()) {
-      this.querySelectorAll('.-on').forEach(noteElement => {
-        noteElement.classList.add('-pedal');
+    if (this.isSustained()) {
+      this.querySelectorAll('.-pressed').forEach(noteElement => {
+        noteElement.classList.add('-sustained');
       })
     } else {
-      this.querySelectorAll('.-pedal').forEach(noteElement => {
-        noteElement.classList.remove('-pedal');
+      this.querySelectorAll('.-sustained').forEach(noteElement => {
+        noteElement.classList.remove('-sustained');
       })
     }
   }
 
-  isPedalDown() {
-    return this.pedalLevel > this.pedalThreshold;
+  isSustained() {
+    return this.sustainLevel > this.sustainThreshold;
   }
 
 
-  getWhiteKeyCount(from = this.noteStart, to = this.noteEnd): number {
+  getWhiteKeyCount(from = this.lowestNote, to = this.highestNote): number {
     let whiteKeyCount = 0;
 
     for (let midiNote = from; midiNote <= to; midiNote++) {
@@ -291,7 +291,7 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
   }
 
 
-  getBlackKeyCount(from = this.noteStart, to = this.noteEnd): number {
+  getBlackKeyCount(from = this.lowestNote, to = this.highestNote): number {
     let blackKeyCount = 0;
 
     for (let midiNote = from; midiNote <= to; midiNote++) {
@@ -305,26 +305,26 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
 
 
   getKeyCount(): number {
-    return this.noteEnd - this.noteStart + 1;
+    return this.highestNote - this.lowestNote + 1;
   }
 
-  private triggerNoteOn(note: number, velocity: number) {
-    const event: CustomEventInit<NoteOnEvent> = {
+  private triggerKeyPress(note: number, velocity: number) {
+    const event: CustomEventInit<KeyPressedEvent> = {
       detail: {
         note: note,
         velocity: velocity
       }
     };
-    this.dispatchEvent(new CustomEvent(PianoKeyboardElement.ON_NOTE_ON, event));
+    this.dispatchEvent(new CustomEvent(PianoKeyboardElement.ON_KEY_PRESSED, event));
   }
 
-  private triggerNoteOff(note: number) {
-    const event: CustomEventInit<NoteOffEvent> = {
+  private triggerKeyRelease(note: number) {
+    const event: CustomEventInit<KeyReleasedEvent> = {
       detail: {
         note: note
       }
     }
-    this.dispatchEvent(new CustomEvent(PianoKeyboardElement.ON_NOTE_OFF, event));
+    this.dispatchEvent(new CustomEvent(PianoKeyboardElement.ON_KEY_RELEASED, event));
   }
 
   private onKeyboardKeyDown = () => {

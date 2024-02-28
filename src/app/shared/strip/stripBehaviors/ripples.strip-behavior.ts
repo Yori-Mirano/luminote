@@ -43,7 +43,7 @@ export class RipplesStripBehavior extends StripBehavior implements OnInit {
           this.strip.set(i, newColor.r, newColor.g, newColor.b, newColor.w + this.notes[i].velocity*.2);
           this.notes[i].velocity *= 0.99;
           
-        } else if (this.notes[i].pedal) {
+        } else if (this.notes[i].sustained) {
           this.strip.set(
             i,
             newColor.r + this.notes[i].velocity*.15 *.2,

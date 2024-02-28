@@ -5,6 +5,6 @@
 
 export interface Note {
   pressed: boolean;
-  pedal: boolean;
+  sustained: boolean;
   velocity: number;
 }

@@ -12,7 +12,7 @@ export class SimpleStripBehavior extends StripBehavior {
         this.strip.set(i, 0, 0, 0, this.notes[i].velocity);
         this.notes[i].velocity *= 0.99;
         
-      } else if (this.notes[i].pedal) {
+      } else if (this.notes[i].sustained) {
         this.strip.set(i, this.notes[i].velocity*.15, this.notes[i].velocity*.3, this.notes[i].velocity*.3, 0);
         this.notes[i].velocity *= 0.99;
 
