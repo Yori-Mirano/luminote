@@ -28,7 +28,7 @@ export class AutoHideElement extends HTMLElement implements CustomElement {
   }
 
   initEventListeners() {
-    document.addEventListener('mousemove', () => { this.show(); this.startAutoHidingDelay() });
+    this.parentElement.addEventListener('mousemove', () => { this.show(); this.startAutoHidingDelay() });
 
     this.addEventListener('focusin', () => { this.hasFocus = true; this.cancelAutoHidingDelay(); this.show() });
     this.addEventListener('focusout', () => { this.hasFocus = false; this.startAutoHidingDelay() });

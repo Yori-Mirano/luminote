@@ -45,12 +45,15 @@ class AppElement extends HTMLElement implements CustomElement {
   }
 
   viewInit() {
-    this.innerHTML = `
-      <app-auto-hide data-delay="1000" class="app_overlay">
-        <app-config-panel></app-config-panel>
-      </app-auto-hide>
+    this.innerHTML = `      
+      <div class="grow relative">
+        <app-auto-hide data-delay="1000" class="app_overlay">
+          <app-config-panel></app-config-panel>
+        </app-auto-hide>
+        
+        <div ${ this.elementRefs.viewportStripRenderer }></div>
+      </div>
       
-      <div ${ this.elementRefs.viewportStripRenderer } class="grow relative"></div>
       <app-line-strip-renderer ${ this.elementRefs.lineStripRenderer } class="app_strip"></app-line-strip-renderer>
       
       <app-piano-keyboard 
@@ -151,12 +154,15 @@ class AppElement extends HTMLElement implements CustomElement {
 
   initViewportRenderer() {
     const rendererTagname = appConfig.viewportRenderer.list[appStateStore.viewportRenderer.value];
+
     const element = <StripRendererElement>document.createElement(rendererTagname);
-    this.viewportRendererElement = element;
     element.style.position = 'absolute';
     element.style.inset = '0';
     element.style.marginLeft = this.elementRefs.pianoKeyboard.element.leftMargin + '%';
     element.style.marginRight = this.elementRefs.pianoKeyboard.element.rightMargin + '%';
+
+    this.viewportRendererElement = element;
+    this.elementRefs.viewportStripRenderer.element.innerHTML = '';
     this.elementRefs.viewportStripRenderer.element.appendChild(element);
 
     element.factor = 4;
