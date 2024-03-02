@@ -20,7 +20,7 @@ app-piano-keyboard {
   }
 
   &[data-disabled] {
-    //filter: brightness(0.5);
+    filter: brightness(0.5);
   }
 
   .pianoKeyboard {

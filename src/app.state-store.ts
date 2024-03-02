@@ -11,8 +11,8 @@ export const appStateStore = {
   viewportRenderer: new PersistedObservable('viewportRenderer', appConfig.viewportRenderer.current),
   midi: {
     ports: {
-      input: new Observable([]),
-      output: new Observable([]),
+      input: new Observable<string[]>([]),
+      output: new Observable<string[]>([]),
     }
   }
 };

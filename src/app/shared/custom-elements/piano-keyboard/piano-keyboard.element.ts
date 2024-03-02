@@ -89,7 +89,6 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
     this.dataset.lowestKey ??= 'A1';
     this.dataset.highestKey ??= 'C9';
 
-    this.disable();
     this.init();
   }
 
@@ -156,13 +155,11 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
 
   initKeyEventListeners(keyElement: HTMLElement, midiNote: number) {
     keyElement.addEventListener('pointerdown', (event) => {
-      event.preventDefault();
       this.triggerKeyPress(midiNote, this.getVelocityFromPosition(event, keyElement));
     });
 
     ['pointerup', 'blur'].forEach(eventType =>
-      keyElement.addEventListener(eventType, event => {
-        event.preventDefault();
+      keyElement.addEventListener(eventType, () => {
         this.triggerKeyRelease(midiNote);
       })
     );
@@ -175,8 +172,6 @@ export class PianoKeyboardElement extends HTMLElement implements CustomElement {
     });
 
     keyElement.addEventListener('keyup', event => {
-      event.preventDefault();
-
       if (['Enter', 'Space'].includes(event.code)) {
         this.triggerKeyRelease(midiNote);
       }

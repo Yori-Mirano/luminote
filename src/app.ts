@@ -68,13 +68,10 @@ class AppElement extends HTMLElement implements CustomElement {
   init() {
     this.initStrip()
     this.initNoteState();
-    this.initStripBehavior();
     this.initRemoteStrip();
     this.initStripElement();
-    this.initViewportRenderer();
     this.initMidiAccess();
 
-    appStateStore.strip.remoteHost.onChange(() => this.connectToRemoteStrip());
     appStateStore.strip.behavior.onChange(() => this.initStripBehavior());
     appStateStore.viewportRenderer.onChange(() => this.initViewportRenderer());
 
@@ -100,7 +97,7 @@ class AppElement extends HTMLElement implements CustomElement {
 
   initRemoteStrip() {
     this.remoteStripOffset = appConfig.remoteStrip.startPointNote - appConfig.pianoKeyboard.lowestKey;
-    this.connectToRemoteStrip();
+    appStateStore.strip.remoteHost.onChange(() => this.connectToRemoteStrip());
   }
 
   connectToRemoteStrip() {
@@ -174,18 +171,21 @@ class AppElement extends HTMLElement implements CustomElement {
     const midiAccess = new MidiAccess();
 
     midiAccess.addEventListener(MidiAccess.ON_PORT_CONNECTED, (event: CustomEvent<PortEvent>) => {
-      this.elementRefs.pianoKeyboard.element.enable();
-
       const portType = event.detail.port.type;
-
-      appStateStore.midi.ports[portType].value = [
-        ...appStateStore.midi.ports[portType].value,
-        event.detail.port.name
-      ];
+      const portName = event.detail.port.name;
+      appStateStore.midi.ports[portType].value.push(portName);
+      appStateStore.midi.ports[portType].notifyChange();
     });
 
     midiAccess.addEventListener(MidiAccess.ON_PORT_DISCONNECTED, (event: CustomEvent<PortEvent>) => {
-      this.elementRefs.pianoKeyboard.element.disable();
+      const portType = event.detail.port.type;
+      const portName = event.detail.port.name;
+      const index = appStateStore.midi.ports[portType].value.indexOf(portName);
+
+      if (index > -1) {
+        appStateStore.midi.ports[portType].value.splice(index, 1);
+        appStateStore.midi.ports[portType].notifyChange();
+      }
     });
 
     midiAccess.addEventListener(MidiAccess.ON_NOTE_ON, (event: CustomEvent<NoteOnEvent>) => {

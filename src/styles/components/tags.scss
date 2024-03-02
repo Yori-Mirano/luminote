@@ -1,10 +1,16 @@
 .tag {
-  background: var(--tag-bg-color);
-  color: var(--tag-text-color);
+  display: inline-flex;
+  gap: 1px;
   border-radius: 1rem;
-  padding: .5rem 1rem;
+  overflow: hidden;
 
-  &.-success {
+  & > * {
+    background: var(--tag-bg-color);
+    color: var(--tag-text-color);
+    padding: .2rem 1rem;
+  }
+
+  &.-success > * {
     background: var(--tag-bg-color--success);
     color: var(--tag-text-color--success);
   }

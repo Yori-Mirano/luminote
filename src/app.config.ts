@@ -27,9 +27,9 @@ export const appConfig: AppConfig = {
 
   viewportRenderer: {
     list: {
-      'Lines': 'app-line-strip-renderer',
+      'Skylines': 'app-line-strip-renderer',
       'Slide up': 'app-slide-up-strip-renderer',
     },
-    current: localStorage.viewportRenderer || 'Lines',
+    current: localStorage.viewportRenderer || 'Skylines',
   }
 }

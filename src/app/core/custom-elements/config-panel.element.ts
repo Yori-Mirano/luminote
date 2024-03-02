@@ -1,12 +1,14 @@
-import { CustomElement } from "../../../shared/custom-element";
-import { callback } from "../../../shared/template-helpers/callback.function";
-import { forEach } from "../../../shared/template-helpers/for-each.function";
-import { appConfig } from "../../../../app.config";
-import { appStateStore } from "../../../../app.state-store";
-import { ElementRef } from "../../../shared/template-helpers/element-ref";
+import { CustomElement } from "../../shared/custom-element";
+import { callback } from "../../shared/template-helpers/callback.function";
+import { forEach } from "../../shared/template-helpers/for-each.function";
+import { appConfig } from "../../../app.config";
+import { appStateStore } from "../../../app.state-store";
+import { ElementRef } from "../../shared/template-helpers/element-ref";
 import MIDIPortType = WebMidi.MIDIPortType;
 
 export class ConfigPanelElement extends HTMLElement implements CustomElement {
+
+  static tagName = 'app-config-panel';
 
   elementRefs = {
     remoteStripConnexionIndicator: new ElementRef(),
@@ -45,8 +47,13 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
         const inputCount = appStateStore.midi.ports.input.value.length;
         const outputCount = appStateStore.midi.ports.output.value.length;
         this.elementRefs.midi.count.element.innerHTML = `
-          <span class="tag ${ inputCount ? '-success' : '' }">inputs: <strong>${ inputCount }</strong></span>
-          <span class="tag ${ outputCount ? '-success' : '' }">outputs: <strong>${ outputCount }</strong></span>
+          <span class="tag ${ inputCount ? '-success' : '' }">
+            <span>inputs</span> <span>${ inputCount }</span>
+          </span>
+          
+          <span class="tag ${ outputCount ? '-success' : '' }">
+            <span>outputs</span> <span>${ outputCount }</span>
+          </span>
         `;
       });
     });
@@ -157,7 +164,7 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
       
       <details class="app_section">
         <summary>
-          Connected MIDI devices
+          Currently used MIDI devices
           <span ${ this.elementRefs.midi.count }></span>
         </summary>
         
@@ -191,4 +198,4 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
 
 }
 
-customElements.define('app-config-panel', ConfigPanelElement);
+customElements.define(ConfigPanelElement.tagName, ConfigPanelElement);

@@ -1,8 +1,7 @@
 /**
  * @module AutoHideElement
  */
-import './auto-hide.element.scss';
-import { CustomElement } from "../../custom-element";
+import { CustomElement } from "../custom-element";
 
 /**
  * An element that automatically hides itself after a specified delay
@@ -12,6 +11,8 @@ import { CustomElement } from "../../custom-element";
  * </app-auto-hide>
  */
 export class AutoHideElement extends HTMLElement implements CustomElement {
+
+  static tagName = 'app-auto-hide';
 
   dataset: {
     delay: string;
@@ -23,8 +24,36 @@ export class AutoHideElement extends HTMLElement implements CustomElement {
   private timeout: ReturnType<typeof setTimeout>;
 
   connectedCallback() {
+    this.initStyle();
     this.initEventListeners();
     this.startAutoHidingDelay();
+  }
+
+  initStyle() {
+    const styleElement = document.createElement('style');
+
+    // language=css
+    styleElement.innerHTML = `
+      @keyframes app-auto-hide--fade-in {
+        from { opacity: 0.1; transform: translateX(-5vw); }
+        to   { opacity: 1; transform: translateX(0); }
+      }
+      
+      @keyframes app-auto-hide--fade-out {
+        from { opacity: 1; transform: translateX(0); }
+        to   { opacity: 0; transform: translateX(-5vw); }
+      }
+      
+      ${ this.tagName }:not([data-hidden]) {
+        animation: app-auto-hide--fade-in 120ms forwards cubic-bezier(0, 0, 0.2, 1);
+      }
+
+      ${ this.tagName }[data-hidden] {
+        animation: app-auto-hide--fade-out 300ms forwards cubic-bezier(0.4, 0, 1, 1);
+      }
+    `;
+
+    this.prepend(styleElement);
   }
 
   initEventListeners() {
@@ -63,4 +92,4 @@ export class AutoHideElement extends HTMLElement implements CustomElement {
   }
 }
 
-customElements.define('app-auto-hide', AutoHideElement);
+customElements.define(AutoHideElement.tagName, AutoHideElement);

@@ -3,6 +3,14 @@
 ## Demo
 https://yori-mirano.github.io/luminote/luminote.html
 
+## Preview
+
+### Slide up mode
+![preview-1.jpg](preview-1.jpg)
+
+### Skylines mode
+![preview 2.jpg](preview%202.jpg)
+
 ## Usage
 Open `dist/luminote.html` in a browser.
 
@@ -17,4 +25,4 @@ Open `dist/luminote.html` in a browser.
 `npm run build` generate the `dist/luminote.html` file and the API doc in the `dist/docs` directory.
 
 ### Doc
-https://yori-mirano.github.io/luminote/docs/
+https://yori-mirano.github.io/luminote/docs/modules.html

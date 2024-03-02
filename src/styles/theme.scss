@@ -1,13 +1,13 @@
 :root {
-  --primary-color: #4f46cc;
-  --primary-color--lighter: #685fe3;
-  --primary-color--darker: #3c3699;
+  --primary-color           : hsl(244deg 57% 54%);
+  --primary-color--lighter  : hsl(244deg 70% 63%);
+  --primary-color--darker   : hsl(244deg 48% 40%);
 
-  --link-color: #948cff;
+  --link-color              : hsl(244deg 100% 77%);
 
-  --tag-text-color: hsl(244deg 100% 91%);
-  --tag-bg-color: hsl(244deg 100% 78% / 23.14%);
-  --tag-text-color--success: hsl(136 100% 91% / 1);
-  --tag-bg-color--success: hsl(136deg 100% 78% / 23%);
+  --tag-text-color          : hsl(244deg 100% 91%);
+  --tag-bg-color            : hsl(244deg 100% 78% / 23%);
+  --tag-text-color--success : hsl(190deg 100% 91% / 1);
+  --tag-bg-color--success   : hsl(190deg 100% 78% / 23%);
 
 }
