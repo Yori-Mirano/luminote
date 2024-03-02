@@ -7,8 +7,6 @@ app-root {
 }
 
 .app {
-  &_strip         { height: 2vh }
-
   &_overlay {
     position: absolute;
     left: 1rem;
@@ -19,14 +17,6 @@ app-root {
     backdrop-filter: blur(5rem);
     overflow: auto;
     z-index: 1;
-  }
-
-  &_section {
-    padding: 2rem;
-    background-color: #2f323db3;
-
-    :first-child { margin-top: 0; }
-    :last-child { margin-bottom: 0; }
   }
 
 

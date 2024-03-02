@@ -14,6 +14,7 @@ import { StripRendererElement } from "./app/shared/custom-elements/stripRenderer
 import { CustomElement } from "./app/shared/custom-element";
 import { ElementRef } from "./app/shared/template-helpers/element-ref";
 import { appStateStore } from "./app.state-store";
+import { StripElement } from "./app/shared/custom-elements/strip.element";
 
 class AppElement extends HTMLElement implements CustomElement {
 
@@ -31,7 +32,7 @@ class AppElement extends HTMLElement implements CustomElement {
   notes: Note[] = [];
 
   elementRefs = {
-    lineStripRenderer: new ElementRef<StripRendererElement>(),
+    stripElement: new ElementRef<StripElement>(),
     viewportStripRenderer: new ElementRef<StripRendererElement>(),
     pianoKeyboard: new ElementRef<PianoKeyboardElement>(),
   };
@@ -54,7 +55,7 @@ class AppElement extends HTMLElement implements CustomElement {
         <div ${ this.elementRefs.viewportStripRenderer }></div>
       </div>
       
-      <app-line-strip-renderer ${ this.elementRefs.lineStripRenderer } class="app_strip"></app-line-strip-renderer>
+      <app-strip ${ this.elementRefs.stripElement }></app-strip>
       
       <app-piano-keyboard 
           ${ this.elementRefs.pianoKeyboard }
@@ -86,7 +87,7 @@ class AppElement extends HTMLElement implements CustomElement {
       this.syncRemoteStrip();
     }
 
-    this.elementRefs.lineStripRenderer.element.render();
+    this.elementRefs.stripElement.element.update();
     this.viewportRendererElement.render();
   }
 
@@ -141,7 +142,7 @@ class AppElement extends HTMLElement implements CustomElement {
   }
 
   initStripElement() {
-    const element = this.elementRefs.lineStripRenderer.element;
+    const element = this.elementRefs.stripElement.element;
 
     element.style.marginLeft = this.elementRefs.pianoKeyboard.element.leftMargin + '%';
     element.style.marginRight = this.elementRefs.pianoKeyboard.element.rightMargin + '%';

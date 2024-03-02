@@ -1,8 +1,8 @@
-# Luminote
+# <img src="./logo-luminote.svg" alt="Lumitote" width="240"/>
 
 > Luminote is a visualization tool developed to enhance the experience of playing a digital piano. Connected via MIDI, Luminote displays the notes as they are played. It also highlights sustained notes in blue, allowing musicians to distinctly see their sustain usage.
 > 
-> In addition to this, Luminote can communicate with a WS2812 LED strip via an ESP32 over Wi-Fi, offering a vibrant, visual representation of notes and sustains on the LED strip.
+> In addition to this, Luminote can communicate with a WS2812 LED strip via an ESP32 over Wi-Fi, offering a visual representation of notes and sustains on the LED strip.
 
 ## Features
 

@@ -67,9 +67,17 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
           flex-direction: column;
           gap: .2rem;
         }
+        
+        .app-configPanel_section {
+          padding: 2rem;
+          background-color: #2f323db3;
+      
+          :first-child { margin-top: 0; }
+          :last-child { margin-bottom: 0; }
+        }
       </style>
       
-      <section class="app_section">
+      <section class="app-configPanel_section">
         <h2>Strip behavior</h2>
         <select class="input" onchange="${ callback(e => this.selectStripBehavior(e)) }">
           ${ forEach(Object.keys(appConfig.stripBehavior.list), key => `
@@ -80,7 +88,7 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
         </select>
       </section>
       
-      <section class="app_section">
+      <section class="app-configPanel_section">
         <h2>Viewport</h2>
         <select class="input" onchange="${ callback(e => this.selectViewportRenderer(e)) }">
           ${ forEach(Object.keys(appConfig.viewportRenderer.list), key => `
@@ -91,7 +99,7 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
         </select>
       </section>
     
-      <section class="app_section">
+      <section class="app-configPanel_section">
         <h2>Remote strip</h2>
         <form class="app_remoteStripForm comboInput mb-1" onsubmit="${ callback(e => this.onConnectToRemoteStrip(e)) }">
           <div ${ this.elementRefs.remoteStripConnexionIndicator } class="app_remoteStripForm_connexionIndicator input"></div>
@@ -162,7 +170,7 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
         </details>
       </section>
       
-      <details class="app_section">
+      <details class="app-configPanel_section">
         <summary>
           Currently used MIDI devices
           <span ${ this.elementRefs.midi.count }></span>
@@ -175,7 +183,7 @@ export class ConfigPanelElement extends HTMLElement implements CustomElement {
         <ul ${ this.elementRefs.midi.ports.output }></ul>
       </details>
       
-      <section class="app_section text-center">
+      <section class="app-configPanel_section text-center">
         <p>
           by Yori Mirano | <a href="https://github.com/Yori-Mirano/luminote">Github</a>
         </p>
