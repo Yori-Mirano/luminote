@@ -14,6 +14,7 @@ import { StripRendererElement } from "./app/shared/custom-elements/stripRenderer
 import { CustomElement } from "./app/shared/custom-element";
 import { ElementRef } from "./app/shared/template-helpers/element-ref";
 import { appStateStore } from "./app.state-store";
+import { Observable } from "./app/shared/observable/observable";
 
 class AppElement extends HTMLElement implements CustomElement {
 
@@ -76,6 +77,15 @@ class AppElement extends HTMLElement implements CustomElement {
     appStateStore.viewportRenderer.onChange(() => this.initViewportRenderer());
 
     this.startMainLoop();
+
+    // TODO: Remove this test
+    const obs = new Observable([]);
+    obs.onChange(value => console.log(value));
+    obs.value.push('FOO')
+    obs.value.push('BAR')
+    obs.value[0] = 'REPLACED'
+    obs.value.shift();
+    obs.value.shift();
   }
 
   onTick() {
@@ -173,8 +183,8 @@ class AppElement extends HTMLElement implements CustomElement {
     midiAccess.addEventListener(MidiAccess.ON_PORT_CONNECTED, (event: CustomEvent<PortEvent>) => {
       const portType = event.detail.port.type;
       const portName = event.detail.port.name;
+
       appStateStore.midi.ports[portType].value.push(portName);
-      appStateStore.midi.ports[portType].notifyChange();
     });
 
     midiAccess.addEventListener(MidiAccess.ON_PORT_DISCONNECTED, (event: CustomEvent<PortEvent>) => {
@@ -184,7 +194,6 @@ class AppElement extends HTMLElement implements CustomElement {
 
       if (index > -1) {
         appStateStore.midi.ports[portType].value.splice(index, 1);
-        appStateStore.midi.ports[portType].notifyChange();
       }
     });
 
