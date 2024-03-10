@@ -1,4 +1,6 @@
-# <img src="./logo-luminote.svg" alt="Lumitote" width="240"/>
+# Readme
+
+<img src="./logo-luminote.svg" alt="Lumitote" width="240"/>
 
 > Luminote is a visualization tool developed to enhance the experience of playing a digital piano. Connected via MIDI, Luminote displays the notes as they are played. It also highlights sustained notes in blue, allowing musicians to distinctly see their sustain usage.
 > 

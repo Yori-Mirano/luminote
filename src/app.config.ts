@@ -7,13 +7,13 @@ import { MidiNoteTools } from "./app/shared/midi/midi-note-tools";
 
 export const appConfig: AppConfig = {
   pianoKeyboard: {
-    lowestKey:  MidiNoteTools.getMidiNote('A1'),
-    highestKey: MidiNoteTools.getMidiNote('C9'),
+    lowestKey:  MidiNoteTools.getMidiNote('A-1'),
+    highestKey: MidiNoteTools.getMidiNote('C7'),
   },
 
   remoteStrip: {
     host: '',
-    startPointNote: MidiNoteTools.getMidiNote('A1'),
+    startPointNote: MidiNoteTools.getMidiNote('A-1'),
   },
 
   stripBehavior: {
