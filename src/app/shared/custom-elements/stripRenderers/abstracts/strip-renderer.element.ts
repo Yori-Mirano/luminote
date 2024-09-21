@@ -42,6 +42,7 @@ export abstract class StripRendererElement extends HTMLElement implements Custom
       ${ this.tagName } > canvas {
         position: absolute;
         inset: 0;
+        width: 100%;
       }
     `;
 
