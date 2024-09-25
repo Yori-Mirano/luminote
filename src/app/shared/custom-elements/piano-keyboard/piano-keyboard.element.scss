@@ -19,6 +19,17 @@ app-piano-keyboard {
     border: none;
   }
 
+  &::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6rem;
+    background: linear-gradient(180deg, #0006, transparent);
+  }
+
   &[data-disabled] {
     filter: brightness(0.5);
   }

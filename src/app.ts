@@ -102,12 +102,12 @@ class AppElement extends HTMLElement implements CustomElement {
   }
 
   connectToRemoteStrip() {
-    if (appConfig.remoteStrip.host) {
+    if (appStateStore.strip.remoteHost.value) {
       if (this.remoteStripConnexion) {
         this.remoteStripConnexion.disconnect();
       }
 
-      this.remoteStripConnexion = new RemoteStrip(appConfig.remoteStrip.host, (strip, syncRemoteStrip) => {
+      this.remoteStripConnexion = new RemoteStrip(appStateStore.strip.remoteHost.value, (strip, syncRemoteStrip) => {
         this.remoteStrip = strip;
         this.syncRemoteStrip = syncRemoteStrip;
       });

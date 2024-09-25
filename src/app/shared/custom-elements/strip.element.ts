@@ -10,7 +10,7 @@ export class StripElement extends HTMLElement implements CustomElement {
   static tagName = 'app-strip';
 
   private _strip: Strip;
-  private _elements: HTMLInputElement[] = [];
+  private _ledElements: HTMLInputElement[] = [];
 
   factor: number = 8;
 
@@ -29,38 +29,38 @@ export class StripElement extends HTMLElement implements CustomElement {
     styleElement.innerHTML = `
       ${ this.tagName } {
         display: flex;
-      }
+        
+        > * {
+          aspect-ratio: 1/2;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background: none;
+          border: 0;
+          cursor: pointer;
+          padding: 0;
+          height: auto;
+          transform: scale(0.2, 0.7);
+          overflow: hidden;
 
-      ${ this.tagName } > * {
-        aspect-ratio: 1;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background: none;
-        border: 0;
-        cursor: pointer;
-        padding: 0;
-        height: auto;
-        min-width: 0;
-        overflow: hidden;
-      }
+          &::-webkit-color-swatch-wrapper {
+            padding: 0;
+          }
 
-      ${ this.tagName } > ::-webkit-color-swatch-wrapper {
-        padding: 0;
-      }
+          &::-webkit-color-swatch{
+            border: 0;
+            border-radius: 0;
+          }
 
-      ${ this.tagName } > ::-webkit-color-swatch{
-        border: 0;
-        border-radius: 0;
-      }
+          &::-moz-color-swatch,
+          &::-moz-focus-inner{
+            border: 0;
+          }
 
-      ${ this.tagName } > ::-moz-color-swatch,
-      ${ this.tagName } > ::-moz-focus-inner{
-        border: 0;
-      }
-
-      ${ this.tagName } > ::-moz-focus-inner{
-        padding: 0;
+          &::-moz-focus-inner{
+            padding: 0;
+          }
+        }
       }
     `;
 
@@ -69,26 +69,26 @@ export class StripElement extends HTMLElement implements CustomElement {
 
   init() {
     this._strip.forEach(() => {
-      const element = document.createElement('input');
+      const ledElement = document.createElement('input');
 
-      element.setAttribute('type', 'color');
+      ledElement.setAttribute('type', 'color');
 
-      element.addEventListener('input', () => {
-        if (StripElement.hasFixedColor(element) && element.value === '#000000') {
-          StripElement.disableFixedColor(element);
+      ledElement.addEventListener('input', () => {
+        if (StripElement.hasFixedColor(ledElement) && ledElement.value === '#000000') {
+          StripElement.disableFixedColor(ledElement);
         } else {
-          StripElement.enableFixedColor(element);
+          StripElement.enableFixedColor(ledElement);
         }
       })
 
-      this.appendChild(element);
-      this._elements.push(element);
+      this.appendChild(ledElement);
+      this._ledElements.push(ledElement);
     });
   }
 
   update() {
     this._strip.forEach((i) => {
-      const element = this._elements[i];
+      const element = this._ledElements[i];
 
       const color = this.strip.get(i);
       const r = StripElement.fromNormalToHexa((255 * color.r  +  255 * color.w * .50) * this.factor);
